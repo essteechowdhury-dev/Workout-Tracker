@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Fitness & Workout Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { red: '#DC2626', darkRed: '#991B1B', dark: '#121212', card: '#1E1E1E', border: '#2D2D2D' }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-brand-dark text-gray-100 min-h-screen font-sans p-4 md:p-8">
+
+  <!-- TOP HEADER -->
+  <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center pb-6 border-b border-brand-border gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
+        <span class="text-brand-red">⚡</span> FITNESS & NUTRITION TRACKER
+      </h1>
+      <p class="text-gray-400 text-sm">Targeted Split: Upper 1 | Lower 1 | Upper 2 | Lower 2</p>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="openCustomizer()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border rounded-lg text-sm font-semibold transition">
+        ⚙️ Customize Plan
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+
+    <!-- LEFT / CENTER COLUMN: WORKOUT SECTION (7 COLS) -->
+    <section class="lg:col-span-7 space-y-6">
+      
+      <!-- WORKOUT ROUTINE HEADER & SELECTOR -->
+      <div class="bg-brand-card border border-brand-border rounded-xl p-5 shadow-lg">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">Select Workout Session</label>
+            <select id="routineSelect" onchange="changeRoutine(this.value)" class="bg-brand-dark text-brand-red font-bold text-lg rounded-lg border border-brand-border p-2 focus:ring-2 focus:ring-brand-red outline-none">
+              <option value="upper1">Monday - UPPER BODY 1</option>
+              <option value="lower1">Tuesday - LOWER BODY 1</option>
+              <option value="upper2">Thursday - UPPER BODY 2</option>
+              <option value="lower2">Friday - LOWER BODY 2</option>
+            </select>
+          </div>
+
+          <!-- SESSION CONTROL & OVERALL TIMER -->
+          <div class="flex items-center gap-3">
+            <div class="text-right">
+              <span class="text-xs text-gray-400 block">Total Session Time</span>
+              <span id="overallTimer" class="font-mono text-xl font-bold text-gray-200">00:00:00</span>
+            </div>
+            <button id="sessionBtn" onclick="toggleSession()" class="px-5 py-2.5 bg-brand-red hover:bg-brand-darkRed text-white font-bold rounded-lg transition shadow-md">
+              ▶ START SESSION
+            </button>
+          </div>
+        </div>
+
+        <!-- EXERCISE LIVE CARD -->
+        <div id="activeExerciseContainer" class="mt-4 p-4 bg-brand-dark border border-brand-border rounded-lg">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <span id="currentStepBadge" class="text-xs bg-brand-red/20 text-brand-red font-semibold px-2 py-0.5 rounded">Exercise 1 of 8</span>
+              <h3 id="currentExerciseName" class="text-xl font-bold text-white mt-1">BENCH PRESS</h3>
+            </div>
+            <div class="text-right">
+              <span class="text-xs text-gray-400 block">Exercise Timer</span>
+              <span id="exerciseTimer" class="font-mono text-lg font-semibold text-brand-red">00:00</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-center text-xs text-gray-400 my-3 bg-brand-card p-2 rounded">
+            <div>Target Sets: <span id="targetSets" class="text-white font-semibold">4</span></div>
+            <div>Rep Range: <span id="targetReps" class="text-white font-semibold">10</span></div>
+            <div>Last Log: <span id="lastLog" class="text-white font-semibold">60kg x 12, 40kg x 18</span></div>
+          </div>
+
+          <!-- INPUT FORM FOR LOGGING SET -->
+          <form id="logSetForm" onsubmit="handleSetSubmit(event)" class="space-y-3 mt-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs text-gray-400 block mb-1">Weight (KG)</label>
+                <input type="number" step="0.5" id="inputKg" required placeholder="e.g. 60" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white outline-none focus:border-brand-red">
+              </div>
+              <div>
+                <label class="text-xs text-gray-400 block mb-1">Reps Performed</label>
+                <input type="number" id="inputReps" required placeholder="e.g. 10" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white outline-none focus:border-brand-red">
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button type="submit" id="saveSetBtn" disabled class="flex-1 bg-gray-700 text-gray-400 font-bold py-2 rounded transition cursor-not-allowed">
+                Save & Next Exercise ➔
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- WORKOUT TIMELINE SUMMARY -->
+        <div class="mt-4">
+          <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Today's Completed Logs & Durations</h4>
+          <div id="exerciseLogHistory" class="space-y-2 text-sm max-h-48 overflow-y-auto pr-1">
+            <p class="text-gray-500 italic text-xs">No exercises completed yet in this session.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: WEIGHT LOG & MEAL PLAN (5 COLS) -->
+    <section class="lg:col-span-5 space-y-6">
+
+      <!-- WEIGHT TRACKER / LOG BOOK -->
+      <div class="bg-brand-card border border-brand-border rounded-xl p-5 shadow-lg">
+        <h2 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+          <span>⚖️</span> LOG BOOK (BODYWEIGHT)
+        </h2>
+        <form onsubmit="handleWeightLog(event)" class="flex gap-2 mb-4">
+          <input type="date" id="weightDate" required class="bg-brand-dark border border-brand-border text-white text-sm rounded p-2 outline-none focus:border-brand-red">
+          <input type="number" step="0.1" id="weightValue" placeholder="KG" required class="w-24 bg-brand-dark border border-brand-border text-white text-sm rounded p-2 outline-none focus:border-brand-red">
+          <button type="submit" class="bg-brand-red hover:bg-brand-darkRed text-white px-3 py-2 rounded text-sm font-semibold transition">Log</button>
+        </form>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-300">
+            <thead class="bg-brand-dark text-gray-400 uppercase">
+              <tr>
+                <th class="p-2">Date</th>
+                <th class="p-2">Weight</th>
+                <th class="p-2">Weekly Avg</th>
+              </tr>
+            </thead>
+            <tbody id="weightTableBody" class="divide-y divide-brand-border">
+              <!-- Dynamic Rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MEAL PLAN TRACKER -->
+      <div class="bg-brand-card border border-brand-border rounded-xl p-5 shadow-lg">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>🥗</span> MEAL PLAN
+          </h2>
+          <select id="mealTypeSelect" onchange="renderMeals()" class="bg-brand-dark text-xs text-brand-red font-bold rounded border border-brand-border p-1.5 outline-none">
+            <option value="training">Training Day (1,560 - 1,600 kcal)</option>
+            <option value="nontraining">Non-Training Day (1,260 - 1,310 kcal)</option>
+          </select>
+        </div>
+
+        <div id="mealList" class="space-y-3">
+          <!-- Dynamic Meal Cards -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // --- STATE MANAGEMENT ---
+    let routines = {
+      upper1: {
+        title: "UPPER BODY 1",
+        exercises: [
+          { name: "BENCH PRESS", sets: 4, reps: 10, lastLog: "60kg x 12, 40kg x 18" },
+          { name: "HIGH INCLINE BENCH PRESS", sets: 3, reps: 10, lastLog: "40kg x 13, 20kg x 20" },
+          { name: "LAT PULL DOWN", sets: 4, reps: 10, lastLog: "8th x 13, 6th x 18" },
+          { name: "SEATED ROW", sets: 3, reps: 10, lastLog: "8th x 15, 6th x 18" },
+          { name: "SHOULDER MACHINE PRESS", sets: 3, reps: 10, lastLog: "30kg x 13, 20kg x 15" },
+          { name: "LATERAL RAISES", sets: 3, reps: 10, lastLog: "8kg x 20, 6kg x 25" },
+          { name: "CABLE PUSH DOWN BAR", sets: 3, reps: 10, lastLog: "10th x 15, 8th x 20" },
+          { name: "SINGLE ARM PREACHER CURL", sets: 3, reps: 10, lastLog: "8kg x 15, 6kg x 18" }
+        ]
+      },
+      lower1: {
+        title: "LOWER BODY 1",
+        exercises: [
+          { name: "SMITH SQUATS", sets: 4, reps: 10, lastLog: "60kg x 10, 40kg x 10" },
+          { name: "SINGLE LEG PRESS", sets: 3, reps: 10, lastLog: "6th x 15" },
+          { name: "LEG EXTENSION", sets: 3, reps: 10, lastLog: "30kg x 15, 25kg x 16" },
+          { name: "BARBELL RDL", sets: 4, reps: 10, lastLog: "50kg x 10" },
+          { name: "BULGARIAN SQUATS", sets: 3, reps: 10, lastLog: "12kg x 10" },
+          { name: "HIP THURTS", sets: 3, reps: 10, lastLog: "40kg x 12" },
+          { name: "SMITH CALF RAISES", sets: 3, reps: 10, lastLog: "60kg x 15, 15" }
+        ]
+      },
+      upper2: {
+        title: "UPPER BODY 2",
+        exercises: [
+          { name: "LOW INCLINE SMITH PRESS", sets: 4, reps: 10, lastLog: "60kg x 11, 40kg x 17" },
+          { name: "HIGH INCLINE DUMBBELL PRESS", sets: 3, reps: 10, lastLog: "40kg x 11, 20kg x 18" },
+          { name: "CABLE CROSSOVERS HIGH POSITION", sets: 3, reps: 10, lastLog: "4th x 12, 2nd x 20" },
+          { name: "CLOSE GRIP LAT PULL DOWN", sets: 4, reps: 10, lastLog: "6th x 15, 4th x 20" },
+          { name: "T-BAR ROW", sets: 3, reps: 10, lastLog: "20kg x 13, 10kg x 20" },
+          { name: "REAR DELT CABLE FLY", sets: 3, reps: 10, lastLog: "2nd x 15, 1st x 20" },
+          { name: "SINGLE ARM CABLE LATERAL RAISE", sets: 3, reps: 10, lastLog: "4th x 7, 2nd x 15" },
+          { name: "FACE AWAY CABLE CURL", sets: 3, reps: 10, lastLog: "4th x 12, 2nd x 20" }
+        ]
+      },
+      lower2: {
+        title: "LOWER BODY 2",
+        exercises: [
+          { name: "BARBELL RDL", sets: 4, reps: 10, lastLog: "12.5kg x 16, 10kg x 18" },
+          { name: "LEG PRESS", sets: 4, reps: 10, lastLog: "12th x 16, 9th x 22" },
+          { name: "BULGARIAN SQUATS", sets: 3, reps: 10, lastLog: "15kg x 10" },
+          { name: "LEG EXTENSION", sets: 3, reps: 10, lastLog: "35kg x 12" },
+          { name: "SINGLE LEG CABLE CURL", sets: 3, reps: 10, lastLog: "20kg x 7, 10kg x 12" },
+          { name: "HIP THURTS", sets: 3, reps: 10, lastLog: "50kg x 10" },
+          { name: "SMITH CALF RAISES", sets: 3, reps: 10, lastLog: "70kg x 12" }
+        ]
+      }
+    };
+
+    let meals = {
+      training: [
+        { time: "8:00", name: "Breakfast", carbs: 30, protein: 48, fats: 14, desc: "150g egg whites + 1 egg + 40g oats + 25g protein powder + 30g turkey slice + 20g light cheese + Vit D3 + Omega 3" },
+        { time: "14:00", name: "Pre-Workout", carbs: 55, protein: 42, fats: 8, desc: "120g cooked rice OR 150g baked potatoes + 140g chicken + vegetables" },
+        { time: "20:00", name: "Post-Workout", carbs: 70, protein: 55, fats: 9, desc: "150g cooked rice OR 180g baked potatoes + 150g chicken + vegetables + 30g protein powder + 5g Creatine + Magnesium" }
+      ],
+      nontraining: [
+        { time: "8:00", name: "Breakfast", carbs: 30, protein: 48, fats: 14, desc: "150g egg whites + 1 egg + 40g oats + 25g protein powder + 30g turkey slice + 20g light cheese + Vit D3 + Omega 3" },
+        { time: "14:00", name: "Lunch", carbs: 34, protein: 40, fats: 7, desc: "80g cooked rice OR 120g baked potatoes + 130g chicken + vegetables" },
+        { time: "20:00", name: "Dinner", carbs: 35, protein: 52, fats: 8, desc: "80g cooked rice OR 120g baked potatoes + 140g chicken + vegetables + 30g protein powder + 5g Creatine + Magnesium" }
+      ]
+    };
+
+    let weightLogs = [
+      { date: "2026-03-30", weight: 82.5 },
+      { date: "2026-03-31", weight: 82.3 },
+      { date: "2026-04-01", weight: 82.1 }
+    ];
+
+    // --- TIMERS & SESSION STATE ---
+    let currentRoutineKey = 'upper1';
+    let currentExerciseIdx = 0;
+    let isSessionActive = false;
+
+    let overallTimerInterval = null;
+    let exerciseTimerInterval = null;
+    let overallSeconds = 0;
+    let exerciseSeconds = 0;
+    let completedLogs = [];
+
+    // --- INIT ---
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('weightDate').valueAsDate = new Date();
+      renderExerciseCard();
+      renderWeightLogs();
+      renderMeals();
+    });
+
+    // ROUTINE SWITCHING
+    function changeRoutine(key) {
+      if (isSessionActive && !confirm("Changing routine will stop your current workout timer. Continue?")) {
+        document.getElementById('routineSelect').value = currentRoutineKey;
+        return;
+      }
+      if (isSessionActive) stopSession();
+      currentRoutineKey = key;
+      currentExerciseIdx = 0;
+      completedLogs = [];
+      renderExerciseCard();
+      document.getElementById('exerciseLogHistory').innerHTML = `<p class="text-gray-500 italic text-xs">No exercises completed yet in this session.</p>`;
+    }
+
+    // SESSION TIMER CONTROLS
+    function toggleSession() {
+      if (!isSessionActive) {
+        startSession();
+      } else {
+        stopSession();
+      }
+    }
+
+    function startSession() {
+      isSessionActive = true;
+      document.getElementById('sessionBtn').innerText = '⏹ STOP SESSION';
+      document.getElementById('sessionBtn').className = 'px-5 py-2.5 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition shadow-md';
+      document.getElementById('saveSetBtn').disabled = false;
+      document.getElementById('saveSetBtn').className = 'flex-1 bg-brand-red hover:bg-brand-darkRed text-white font-bold py-2 rounded transition shadow-md';
+      
+      overallSeconds = 0;
+      exerciseSeconds = 0;
+      
+      overallTimerInterval = setInterval(() => {
+        overallSeconds++;
+        document.getElementById('overallTimer').innerText = formatHMS(overallSeconds);
+      }, 1000);
+
+      startExerciseTimer();
+    }
+
+    function startExerciseTimer() {
+      clearInterval(exerciseTimerInterval);
+      exerciseSeconds = 0;
+      document.getElementById('exerciseTimer').innerText = "00:00";
+      exerciseTimerInterval = setInterval(() => {
+        exerciseSeconds++;
+        document.getElementById('exerciseTimer').innerText = formatMS(exerciseSeconds);
+      }, 1000);
+    }
+
+    function stopSession() {
+      isSessionActive = false;
+      clearInterval(overallTimerInterval);
+      clearInterval(exerciseTimerInterval);
+      document.getElementById('sessionBtn').innerText = '▶ START SESSION';
+      document.getElementById('sessionBtn').className = 'px-5 py-2.5 bg-brand-red hover:bg-brand-darkRed text-white font-bold rounded-lg transition shadow-md';
+      document.getElementById('saveSetBtn').disabled = true;
+      document.getElementById('saveSetBtn').className = 'flex-1 bg-gray-700 text-gray-400 font-bold py-2 rounded transition cursor-not-allowed';
+      alert(`Workout finished! Total duration: ${formatHMS(overallSeconds)}`);
+    }
+
+    // SUBMIT LOG FOR EXERCISE
+    function handleSetSubmit(e) {
+      e.preventDefault();
+      if (!isSessionActive) return;
+
+      const kg = document.getElementById('inputKg').value;
+      const reps = document.getElementById('inputReps').value;
+      const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
+      const timeSpent = formatMS(exerciseSeconds);
+
+      // Log entry
+      completedLogs.push({
+        name: currentEx.name,
+        log: `${kg}kg x ${reps}`,
+        duration: timeSpent
+      });
+
+      renderHistory();
+
+      // Reset Form & Advance Exercise
+      document.getElementById('logSetForm').reset();
+      
+      if (currentExerciseIdx < routines[currentRoutineKey].exercises.length - 1) {
+        currentExerciseIdx++;
+        renderExerciseCard();
+        startExerciseTimer();
+      } else {
+        alert("🎉 Complete routine finished!");
+        stopSession();
+      }
+    }
+
+    function renderExerciseCard() {
+      const ex = routines[currentRoutineKey].exercises[currentExerciseIdx];
+      document.getElementById('currentStepBadge').innerText = `Exercise ${currentExerciseIdx + 1} of ${routines[currentRoutineKey].exercises.length}`;
+      document.getElementById('currentExerciseName').innerText = ex.name;
+      document.getElementById('targetSets').innerText = ex.sets;
+      document.getElementById('targetReps').innerText = ex.reps;
+      document.getElementById('lastLog').innerText = ex.lastLog;
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('exerciseLogHistory');
+      container.innerHTML = completedLogs.map(item => `
+        <div class="flex justify-between items-center bg-brand-dark p-2 border border-brand-border rounded">
+          <div>
+            <span class="font-bold text-white block">${item.name}</span>
+            <span class="text-xs text-brand-red">${item.log}</span>
+          </div>
+          <span class="font-mono text-xs text-gray-400">⏱ ${item.duration}</span>
+        </div>
+      `).join('');
+    }
+
+    // --- WEIGHT LOGGING ---
+    function handleWeightLog(e) {
+      e.preventDefault();
+      const date = document.getElementById('weightDate').value;
+      const weight = parseFloat(document.getElementById('weightValue').value);
+      
+      weightLogs.unshift({ date, weight });
+      document.getElementById('weightValue').value = '';
+      renderWeightLogs();
+    }
+
+    function renderWeightLogs() {
+      const tbody = document.getElementById('weightTableBody');
+      const avg = weightLogs.length ? (weightLogs.reduce((acc, curr) => acc + curr.weight, 0) / weightLogs.length).toFixed(1) : '-';
+
+      tbody.innerHTML = weightLogs.map((log, index) => `
+        <tr class="hover:bg-brand-dark/50">
+          <td class="p-2">${log.date}</td>
+          <td class="p-2 font-bold text-white">${log.weight} kg</td>
+          <td class="p-2 text-gray-400">${index === 0 ? `${avg} kg (Avg)` : '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    // --- MEAL RENDER ---
+    function renderMeals() {
+      const mealType = document.getElementById('mealTypeSelect').value;
+      const container = document.getElementById('mealList');
+
+      container.innerHTML = meals[mealType].map((meal, i) => `
+        <div class="bg-brand-dark p-3 border border-brand-border rounded-lg flex flex-col gap-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-brand-red">${meal.time} - ${meal.name}</span>
+            <div class="flex gap-2 text-[10px] text-gray-300">
+              <span class="bg-gray-800 px-1.5 py-0.5 rounded">C: ${meal.carbs}g</span>
+              <span class="bg-gray-800 px-1.5 py-0.5 rounded">P: ${meal.protein}g</span>
+              <span class="bg-gray-800 px-1.5 py-0.5 rounded">F: ${meal.fats}g</span>
+            </div>
+          </div>
+          <p class="text-xs text-gray-300">${meal.desc}</p>
+          <label class="flex items-center gap-2 text-xs text-gray-400 mt-1 cursor-pointer">
+            <input type="checkbox" class="accent-brand-red rounded"> Mark Consumed
+          </label>
+        </div>
+      `).join('');
+    }
+
+    function openCustomizer() {
+      alert("Customization mode: You can connect this component directly to Supabase table data or local state!");
+    }
+
+    // HELPERS
+    function formatMS(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function formatHMS(sec) {
+      const h = Math.floor(sec / 3600).toString().padStart(2, '0');
+      const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+  </script>
+</body>
+</html>
