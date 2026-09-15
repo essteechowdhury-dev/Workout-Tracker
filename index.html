@@ -457,26 +457,35 @@
       document.getElementById('searchResults').classList.add('hidden');
     }
 
-    function renderBasket() {
-      const container = document.getElementById('mealBasket');
-      let tKcal = 0, tC = 0, tP = 0, tF = 0;
+function renderBasket() {
+  const container = document.getElementById('mealBasket');
+  let tKcal = 0, tC = 0, tP = 0, tF = 0;
 
-      if (currentStagedItems.length === 0) {
-        container.innerHTML = `<p class="text-gray-500 italic">No foods added to this meal yet.</p>`;
-      } else {
-        container.innerHTML = currentStagedItems.map((item, idx) => {
-          tKcal += item.kcal; tC += item.carbs; tP += item.protein; tF += item.fats;
-          return `
-            <div class="flex justify-between items-center bg-brand-dark p-2 border border-brand-border rounded">
-              <span><b>${item.name}</b> (${item.grams}g)</span>
-              <div class="flex items-center gap-2">
-                <span class="text-brand-red font-bold">${item.kcal} kcal</span>
-                <button onclick="removeStagedItem(${idx})" class="text-red-500 font-bold">✕</button>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
+  if (currentStagedItems.length === 0) {
+    container.innerHTML = `<p class="text-gray-500 italic">No foods added to this meal yet.</p>`;
+  } else {
+    container.innerHTML = currentStagedItems.map((item, idx) => {
+      tKcal += item.kcal; tC += item.carbs; tP += item.protein; tF += item.fats;
+      return `
+        <div class="flex justify-between items-center bg-brand-dark p-2 border border-brand-border rounded">
+          <div>
+            <span class="font-bold text-white block">${item.name} (${item.grams}g)</span>
+            <span class="text-[10px] text-gray-400 font-mono block">C:${item.carbs}g | P:${item.protein}g | F:${item.fats}g</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-brand-red font-bold text-xs">${item.kcal} kcal</span>
+            <button onclick="removeStagedItem(${idx})" class="text-red-500 font-bold hover:text-red-400">✕</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  document.getElementById('basketKcal').innerText = tKcal;
+  document.getElementById('basketCarbs').innerText = tC;
+  document.getElementById('basketProtein').innerText = tP;
+  document.getElementById('basketFats').innerText = tF;
+}
 
       document.getElementById('basketKcal').innerText = tKcal;
       document.getElementById('basketCarbs').innerText = tC;
