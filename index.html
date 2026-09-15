@@ -142,17 +142,17 @@
         </div>
       </div>
 
-      <!-- MEAL PLAN TRACKER & MACRO CALCULATOR -->
+      <!-- MEAL PLAN TRACKER & GLOBAL FOOD SEARCH -->
       <div class="bg-brand-card border border-brand-border rounded-xl p-5 shadow-lg">
         <div class="flex justify-between items-center mb-3">
-          <h2 class="text-lg font-bold text-white flex items-center gap-2"><span>🥗</span> MEAL PLAN & MACROS</h2>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2"><span>🥗</span> MEAL PLAN</h2>
           <div class="flex items-center gap-2">
             <select id="mealTypeSelect" onchange="renderMeals()" class="bg-brand-dark text-xs text-brand-red font-bold rounded border border-brand-border p-1.5 outline-none">
               <option value="training">Training Day</option>
               <option value="nontraining">Non-Training Day</option>
             </select>
             <button onclick="openMealModal()" class="text-xs bg-brand-red hover:bg-brand-darkRed text-white px-2 py-1 rounded font-semibold">
-              + Add Food
+              🔍 Add Food
             </button>
           </div>
         </div>
@@ -209,71 +209,88 @@
       </form>
 
       <div class="border-t border-brand-border pt-3">
-        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Existing Exercises (Click Edit to change)</h4>
+        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Existing Exercises</h4>
         <div id="modalExerciseList" class="space-y-2 text-xs"></div>
       </div>
     </div>
   </div>
 
-  <!-- MEAL CALORIE & MACRO MODAL -->
+  <!-- MEAL SEARCH & MULTI-FOOD BUILDER MODAL -->
   <div id="mealModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
-    <div class="bg-brand-card border border-brand-border rounded-xl p-6 max-w-lg w-full space-y-4">
+    <div class="bg-brand-card border border-brand-border rounded-xl p-6 max-w-xl w-full space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-brand-border pb-3">
-        <h3 class="text-lg font-bold text-white">🥗 Add Food & Calculate Macros</h3>
+        <h3 class="text-lg font-bold text-white">🥗 Global Food Search & Meal Builder</h3>
         <button onclick="closeMealModal()" class="text-gray-400 hover:text-white">✕</button>
       </div>
 
-      <form onsubmit="handleSaveMeal(event)" class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="text-xs text-gray-400 block mb-1">Day Type</label>
-          <select id="mealModalType" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+          <select id="modalDayType" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
             <option value="training">Training Day</option>
             <option value="nontraining">Non-Training Day</option>
           </select>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs text-gray-400 block mb-1">Meal / Food Name</label>
-            <input type="text" id="mealModalName" required placeholder="e.g. Cooked Rice" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
-          </div>
-          <div>
-            <label class="text-xs text-gray-400 block mb-1">Portion Weight (Grams)</label>
-            <input type="number" id="mealModalGrams" oninput="calculatePreviewMacros()" required placeholder="e.g. 150" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
-          </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Meal Category</label>
+          <select id="modalMealCategory" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
+            <option value="Breakfast">Breakfast</option>
+            <option value="Pre-Workout">Pre-Workout</option>
+            <option value="Post-Workout">Post-Workout</option>
+            <option value="Lunch">Lunch</option>
+            <option value="Dinner">Dinner</option>
+            <option value="Snack">Snack</option>
+          </select>
         </div>
+      </div>
 
-        <div class="text-xs text-gray-400 font-semibold mt-2">Base Macros Per 100g:</div>
-        <div class="grid grid-cols-3 gap-2">
-          <div>
-            <label class="text-[10px] text-gray-400 block">Carbs / 100g</label>
-            <input type="number" step="0.1" id="mealModalCarbs100" oninput="calculatePreviewMacros()" required placeholder="28" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
-          </div>
-          <div>
-            <label class="text-[10px] text-gray-400 block">Protein / 100g</label>
-            <input type="number" step="0.1" id="mealModalProtein100" oninput="calculatePreviewMacros()" required placeholder="2.7" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
-          </div>
-          <div>
-            <label class="text-[10px] text-gray-400 block">Fats / 100g</label>
-            <input type="number" step="0.1" id="mealModalFats100" oninput="calculatePreviewMacros()" required placeholder="0.3" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
-          </div>
+      <!-- SEARCH BAR / BARCODE INPUT -->
+      <div class="border-t border-brand-border pt-3">
+        <label class="text-xs text-gray-400 block mb-1">Search Food DB or Enter Barcode Number</label>
+        <div class="flex gap-2">
+          <input type="text" id="foodSearchInput" placeholder="e.g. Cooked Chicken Thigh OR 737628001143" class="flex-1 bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
+          <button onclick="searchFoodAPI()" class="bg-brand-red hover:bg-brand-darkRed text-white px-3 py-2 rounded text-xs font-bold">Search</button>
         </div>
+      </div>
 
-        <!-- LIVE MACRO CALCULATION PREVIEW -->
-        <div class="bg-brand-dark p-3 rounded border border-brand-border text-xs text-gray-300">
-          <span class="block font-semibold text-brand-red mb-1">Calculated Portion Totals:</span>
-          <div class="flex justify-between">
-            <span>Calories: <b id="previewKcal" class="text-white">0</b> kcal</span>
-            <span>C: <b id="previewCarbs" class="text-white">0</b>g</span>
-            <span>P: <b id="previewProtein" class="text-white">0</b>g</span>
-            <span>F: <b id="previewFats" class="text-white">0</b>g</span>
-          </div>
-        </div>
+      <!-- SEARCH RESULTS PANEL -->
+      <div id="searchResults" class="hidden max-h-40 overflow-y-auto bg-brand-dark border border-brand-border rounded p-2 space-y-1"></div>
 
-        <div class="flex gap-2 pt-2">
-          <button type="button" onclick="closeMealModal()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 py-2 rounded font-semibold">Cancel</button>
-          <button type="submit" class="flex-1 bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded font-semibold">Save Food</button>
+      <!-- PORTION ADJUSTMENT SECTION -->
+      <div id="portionSection" class="hidden bg-brand-dark border border-brand-border p-3 rounded space-y-2">
+        <div class="flex justify-between text-xs">
+          <span id="selectedFoodName" class="font-bold text-white">Food Name</span>
+          <span class="text-gray-400">Base per 100g</span>
         </div>
-      </form>
+        <div class="flex gap-2 items-center">
+          <input type="number" id="selectedWeight" placeholder="Grams" value="100" oninput="recalculateSelectedPortion()" class="w-24 bg-brand-card border border-brand-border rounded p-2 text-white text-xs">
+          <span class="text-xs text-gray-400">grams</span>
+          <button onclick="addItemToCurrentMeal()" class="ml-auto bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-bold">
+            + Add to Meal
+          </button>
+        </div>
+      </div>
+
+      <!-- CURRENT MEAL STAGING BASKET -->
+      <div class="border-t border-brand-border pt-3">
+        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Meal Ingredients Basket</h4>
+        <div id="mealBasket" class="space-y-2 text-xs max-h-36 overflow-y-auto">
+          <p class="text-gray-500 italic">No foods added to this meal yet.</p>
+        </div>
+      </div>
+
+      <!-- CUMULATIVE MEAL SUMMARY -->
+      <div class="bg-brand-dark p-3 rounded border border-brand-border text-xs flex justify-between">
+        <span>Total: <b id="basketKcal" class="text-brand-red">0</b> kcal</span>
+        <span>C: <b id="basketCarbs" class="text-white">0</b>g</span>
+        <span>P: <b id="basketProtein" class="text-white">0</b>g</span>
+        <span>F: <b id="basketFats" class="text-white">0</b>g</span>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeMealModal()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 py-2 rounded font-semibold text-xs">Cancel</button>
+        <button type="button" onclick="saveStagedMeal()" class="flex-1 bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded font-semibold text-xs">Save Meal to Tracker</button>
+      </div>
     </div>
   </div>
 
@@ -285,68 +302,15 @@
 
     // --- STATE MANAGEMENT ---
     let routines = JSON.parse(localStorage.getItem('myRoutines')) || {
-      upper1: {
-        title: "UPPER BODY 1",
-        exercises: [
-          { name: "BENCH PRESS", sets: 4, reps: 10 },
-          { name: "HIGH INCLINE BENCH PRESS", sets: 3, reps: 10 },
-          { name: "LAT PULL DOWN", sets: 4, reps: 10 },
-          { name: "SEATED ROW", sets: 3, reps: 10 },
-          { name: "SHOULDER MACHINE PRESS", sets: 3, reps: 10 },
-          { name: "LATERAL RAISES", sets: 3, reps: 10 },
-          { name: "CABLE PUSH DOWN BAR", sets: 3, reps: 10 },
-          { name: "SINGLE ARM PREACHER CURL", sets: 3, reps: 10 }
-        ]
-      },
-      lower1: {
-        title: "LOWER BODY 1",
-        exercises: [
-          { name: "SMITH SQUATS", sets: 4, reps: 10 },
-          { name: "SINGLE LEG PRESS", sets: 3, reps: 10 },
-          { name: "LEG EXTENSION", sets: 3, reps: 10 },
-          { name: "BARBELL RDL", sets: 4, reps: 10 },
-          { name: "BULGARIAN SQUATS", sets: 3, reps: 10 },
-          { name: "HIP THURTS", sets: 3, reps: 10 },
-          { name: "SMITH CALF RAISES", sets: 3, reps: 10 }
-        ]
-      },
-      upper2: {
-        title: "UPPER BODY 2",
-        exercises: [
-          { name: "LOW INCLINE SMITH PRESS", sets: 4, reps: 10 },
-          { name: "HIGH INCLINE DUMBBELL PRESS", sets: 3, reps: 10 },
-          { name: "CABLE CROSSOVERS HIGH POSITION", sets: 3, reps: 10 },
-          { name: "CLOSE GRIP LAT PULL DOWN", sets: 4, reps: 10 },
-          { name: "T-BAR ROW", sets: 3, reps: 10 },
-          { name: "REAR DELT CABLE FLY", sets: 3, reps: 10 },
-          { name: "SINGLE ARM CABLE LATERAL RAISE", sets: 3, reps: 10 },
-          { name: "CABLE PUSH DOWN ROPE", sets: 3, reps: 10 },
-          { name: "FACE AWAY CABLE CURL", sets: 3, reps: 10 }
-        ]
-      },
-      lower2: {
-        title: "LOWER BODY 2",
-        exercises: [
-          { name: "BARBELL RDL", sets: 4, reps: 10 },
-          { name: "LEG PRESS", sets: 4, reps: 10 },
-          { name: "BULGARIAN SQUATS", sets: 3, reps: 10 },
-          { name: "LEG EXTENSION", sets: 3, reps: 10 },
-          { name: "SINGLE LEG CABLE CURL", sets: 3, reps: 10 },
-          { name: "HIP THURTS", sets: 3, reps: 10 },
-          { name: "SMITH CALF RAISES", sets: 3, reps: 10 }
-        ]
-      }
+      upper1: { title: "UPPER BODY 1", exercises: [{ name: "BENCH PRESS", sets: 4, reps: 10 }] },
+      lower1: { title: "LOWER BODY 1", exercises: [{ name: "SMITH SQUATS", sets: 4, reps: 10 }] },
+      upper2: { title: "UPPER BODY 2", exercises: [{ name: "LOW INCLINE SMITH PRESS", sets: 4, reps: 10 }] },
+      lower2: { title: "LOWER BODY 2", exercises: [{ name: "BARBELL RDL", sets: 4, reps: 10 }] }
     };
 
-    let meals = JSON.parse(localStorage.getItem('myMeals')) || {
-      training: [
-        { name: "Oats + Egg Whites", grams: 100, carbs: 40, protein: 30, fats: 5, kcal: 325 },
-        { name: "Cooked Chicken Breast", grams: 150, carbs: 0, protein: 46, fats: 5, kcal: 240 }
-      ],
-      nontraining: [
-        { name: "Greek Yogurt + Protein", grams: 200, carbs: 10, protein: 35, fats: 2, kcal: 198 }
-      ]
-    };
+    let meals = JSON.parse(localStorage.getItem('myMeals')) || { training: [], nontraining: [] };
+    let currentStagedItems = [];
+    let activeSelectedFood = null;
 
     let currentRoutineKey = 'upper1';
     let currentExerciseIdx = 0;
@@ -368,242 +332,138 @@
       localStorage.setItem('myMeals', JSON.stringify(meals));
     }
 
-    // --- SUPABASE DATA & DELETION ---
-    async function fetchWeightLogs() {
-      const { data, error } = await supabaseClient.from('weight_logs').select('*').order('log_date', { ascending: false });
-      if (error) return console.error(error);
-      
-      document.getElementById('connectionStatus').className = "text-xs px-3 py-1.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold";
-      document.getElementById('connectionStatus').innerText = "⚡ Supabase: Connected";
+    // --- OPEN FOOD FACTS API SEARCH ---
+    async function searchFoodAPI() {
+      const query = document.getElementById('foodSearchInput').value.trim();
+      if (!query) return;
 
-      const tbody = document.getElementById('weightTableBody');
-      tbody.innerHTML = data.map(log => `
-        <tr class="hover:bg-brand-dark/50">
-          <td class="p-2">${log.log_date}</td>
-          <td class="p-2 font-bold text-white">${log.weight_kg} kg</td>
-          <td class="p-2 text-right">
-            <button onclick="deleteWeightLog('${log.id}')" class="text-xs text-red-500 hover:text-red-400 font-bold px-2 py-0.5 rounded border border-red-500/20">✕ Delete</button>
-          </td>
-        </tr>
-      `).join('');
-    }
+      const resultsContainer = document.getElementById('searchResults');
+      resultsContainer.classList.remove('hidden');
+      resultsContainer.innerHTML = `<p class="text-xs text-amber-400">Searching global database...</p>`;
 
-    async function deleteWeightLog(id) {
-      if (!confirm("Are you sure you want to delete this weight log entry?")) return;
-      const { error } = await supabaseClient.from('weight_logs').delete().eq('id', id);
-      if (error) alert("Error deleting log: " + error.message);
-      else fetchWeightLogs();
-    }
-
-    async function fetchWorkoutLogs() {
-      const routineName = routines[currentRoutineKey].title;
-      const { data, error } = await supabaseClient
-        .from('workout_logs')
-        .select('*')
-        .eq('workout_day', routineName)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) return console.error(error);
-
-      const container = document.getElementById('exerciseLogHistory');
-      if (!data || data.length === 0) {
-        container.innerHTML = `<p class="text-gray-500 italic text-xs">No entries saved yet for this session.</p>`;
-        return;
+      // Is barcode? (All numbers)
+      if (/^\d+$/.test(query)) {
+        const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${query}.json`);
+        const data = await res.json();
+        if (data.status === 1) {
+          renderSearchResults([{
+            name: data.product.product_name || "Barcode Product",
+            c100: data.product.nutriments['carbohydrates_100g'] || 0,
+            p100: data.product.nutriments['proteins_100g'] || 0,
+            f100: data.product.nutriments['fat_100g'] || 0
+          }]);
+        } else {
+          resultsContainer.innerHTML = `<p class="text-xs text-red-500">Barcode not found.</p>`;
+        }
+      } else {
+        const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`);
+        const data = await res.json();
+        if (data.products && data.products.length > 0) {
+          const formatted = data.products.slice(0, 5).map(p => ({
+            name: p.product_name || "Unknown Food",
+            c100: p.nutriments['carbohydrates_100g'] || 0,
+            p100: p.nutriments['proteins_100g'] || 0,
+            f100: p.nutriments['fat_100g'] || 0
+          }));
+          renderSearchResults(formatted);
+        } else {
+          resultsContainer.innerHTML = `<p class="text-xs text-red-500">No matching foods found.</p>`;
+        }
       }
-      
-      container.innerHTML = data.map(item => `
-        <div class="flex justify-between items-center bg-brand-dark p-2 border border-brand-border rounded">
-          <div>
-            <span class="font-bold text-white block text-xs">${item.exercise_name} (Set ${item.set_number})</span>
-            <span class="text-xs text-brand-red">${item.weight_kg}kg x ${item.reps_done} reps</span>
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="font-mono text-xs text-gray-400">⏱ ${formatMS(item.duration_seconds || 0)}</span>
-            <button onclick="deleteWorkoutLog('${item.id}')" class="text-xs text-red-500 hover:text-red-400 font-bold">✕ Delete</button>
-          </div>
+    }
+
+    function renderSearchResults(items) {
+      const container = document.getElementById('searchResults');
+      container.innerHTML = items.map((item, idx) => `
+        <div onclick='selectFoodItem(${JSON.stringify(item)})' class="p-1.5 hover:bg-brand-card rounded cursor-pointer text-xs flex justify-between">
+          <span class="font-bold text-white">${item.name}</span>
+          <span class="text-gray-400 text-[10px]">C:${Math.round(item.c100)}g | P:${Math.round(item.p100)}g | F:${Math.round(item.f100)}g</span>
         </div>
       `).join('');
     }
 
-    async function deleteWorkoutLog(id) {
-      if (!confirm("Delete this exercise set log?")) return;
-      const { error } = await supabaseClient.from('workout_logs').delete().eq('id', id);
-      if (error) alert("Error: " + error.message);
-      else {
-        fetchWorkoutLogs();
-        fetchLastExercisePerformance();
-      }
+    function selectFoodItem(item) {
+      activeSelectedFood = item;
+      document.getElementById('selectedFoodName').innerText = item.name;
+      document.getElementById('portionSection').classList.remove('hidden');
     }
 
-    async function fetchLastExercisePerformance() {
-      const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
-      if (!currentEx) return;
-
-      const { data, error } = await supabaseClient
-        .from('workout_logs')
-        .select('weight_kg, reps_done')
-        .eq('exercise_name', currentEx.name)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      const badge = document.getElementById('lastPerfLog');
-      if (error || !data || data.length === 0) {
-        badge.innerText = "No history";
-      } else {
-        badge.innerText = `${data[0].weight_kg}kg x ${data[0].reps_done}`;
-      }
-    }
-
-    // --- WORKOUT ENGINE LOGIC ---
-    function changeRoutine(key) {
-      if (isSessionActive && !confirm("Changing routine will stop your current workout. Continue?")) {
-        document.getElementById('routineSelect').value = currentRoutineKey;
-        return;
-      }
-      if (isSessionActive) stopSession();
-      currentRoutineKey = key;
-      currentExerciseIdx = 0;
-      currentSetIdx = 1;
-      renderExerciseCard();
-      fetchWorkoutLogs();
-    }
-
-    function toggleSession() {
-      if (!isSessionActive) startSession();
-      else stopSession();
-    }
-
-    function startSession() {
-      isSessionActive = true;
-      document.getElementById('sessionBtn').innerText = '⏹ STOP SESSION';
-      document.getElementById('saveSetBtn').disabled = false;
-      document.getElementById('saveSetBtn').className = 'flex-1 bg-brand-red hover:bg-brand-darkRed text-white font-bold py-2 rounded transition shadow-md';
+    function addItemToCurrentMeal() {
+      if (!activeSelectedFood) return;
+      const grams = parseFloat(document.getElementById('selectedWeight').value) || 100;
       
-      overallSeconds = 0;
-      overallTimerInterval = setInterval(() => {
-        overallSeconds++;
-        document.getElementById('overallTimer').innerText = formatHMS(overallSeconds);
-      }, 1000);
-
-      startExerciseTimer();
-    }
-
-    function startExerciseTimer() {
-      clearInterval(exerciseTimerInterval);
-      exerciseSeconds = 0;
-      document.getElementById('exerciseTimer').innerText = "00:00";
-      exerciseTimerInterval = setInterval(() => {
-        exerciseSeconds++;
-        document.getElementById('exerciseTimer').innerText = formatMS(exerciseSeconds);
-      }, 1000);
-    }
-
-    function stopSession() {
-      isSessionActive = false;
-      clearInterval(overallTimerInterval);
-      clearInterval(exerciseTimerInterval);
-      document.getElementById('sessionBtn').innerText = '▶ START SESSION';
-      document.getElementById('saveSetBtn').disabled = true;
-      document.getElementById('saveSetBtn').className = 'flex-1 bg-gray-700 text-gray-400 font-bold py-2 rounded transition cursor-not-allowed';
-    }
-
-    async function handleSetSubmit(e) {
-      e.preventDefault();
-      if (!isSessionActive) return;
-
-      const kg = parseFloat(document.getElementById('inputKg').value);
-      const reps = parseInt(document.getElementById('inputReps').value);
-      const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
-
-      const { error } = await supabaseClient.from('workout_logs').insert([{
-        workout_day: routines[currentRoutineKey].title,
-        exercise_name: currentEx.name,
-        set_number: currentSetIdx,
-        weight_kg: kg,
-        reps_done: reps,
-        duration_seconds: exerciseSeconds
-      }]);
-
-      if (error) {
-        alert("Error saving log: " + error.message);
-        return;
-      }
-
-      await fetchWorkoutLogs();
-      document.getElementById('logSetForm').reset();
-
-      if (currentSetIdx < currentEx.sets) {
-        currentSetIdx++;
-      } else {
-        currentSetIdx = 1;
-        if (currentExerciseIdx < routines[currentRoutineKey].exercises.length - 1) {
-          currentExerciseIdx++;
-          startExerciseTimer();
-        } else {
-          alert("🎉 Workout session completed!");
-          stopSession();
-        }
-      }
-      renderExerciseCard();
-    }
-
-    async function handleWeightLog(e) {
-      e.preventDefault();
-      const date = document.getElementById('weightDate').value;
-      const weight = parseFloat(document.getElementById('weightValue').value);
-
-      const { error } = await supabaseClient.from('weight_logs').upsert([{ log_date: date, weight_kg: weight }]);
-      if (error) alert("Failed to log weight: " + error.message);
-      else {
-        document.getElementById('weightValue').value = '';
-        fetchWeightLogs();
-      }
-    }
-
-    function renderExerciseCard() {
-      const exList = routines[currentRoutineKey].exercises;
-      if (exList.length === 0) {
-        document.getElementById('currentExerciseName').innerText = "NO EXERCISES ADDED";
-        return;
-      }
-      const ex = exList[currentExerciseIdx];
-      document.getElementById('currentStepBadge').innerText = `Exercise ${currentExerciseIdx + 1} of ${exList.length}`;
-      document.getElementById('currentExerciseName').innerText = ex.name;
-      document.getElementById('targetSets').innerText = ex.sets;
-      document.getElementById('currentSetNum').innerText = currentSetIdx;
-      document.getElementById('targetReps').innerText = ex.reps;
-      fetchLastExercisePerformance();
-    }
-
-    // --- DYNAMIC MEAL & MACRO CALCULATOR ---
-    function calculatePreviewMacros() {
-      const grams = parseFloat(document.getElementById('mealModalGrams').value) || 0;
-      const c100 = parseFloat(document.getElementById('mealModalCarbs100').value) || 0;
-      const p100 = parseFloat(document.getElementById('mealModalProtein100').value) || 0;
-      const f100 = parseFloat(document.getElementById('mealModalFats100').value) || 0;
-
-      const carbs = Math.round((grams * c100) / 100);
-      const protein = Math.round((grams * p100) / 100);
-      const fats = Math.round((grams * f100) / 100);
+      const carbs = Math.round((grams * activeSelectedFood.c100) / 100);
+      const protein = Math.round((grams * activeSelectedFood.p100) / 100);
+      const fats = Math.round((grams * activeSelectedFood.f100) / 100);
       const kcal = Math.round((carbs * 4) + (protein * 4) + (fats * 9));
 
-      document.getElementById('previewCarbs').innerText = carbs;
-      document.getElementById('previewProtein').innerText = protein;
-      document.getElementById('previewFats').innerText = fats;
-      document.getElementById('previewKcal').innerText = kcal;
+      currentStagedItems.push({
+        name: activeSelectedFood.name,
+        grams, carbs, protein, fats, kcal
+      });
 
-      return { carbs, protein, fats, kcal };
+      renderBasket();
+      document.getElementById('portionSection').classList.add('hidden');
+      document.getElementById('searchResults').classList.add('hidden');
+    }
+
+    function renderBasket() {
+      const container = document.getElementById('mealBasket');
+      let tKcal = 0, tC = 0, tP = 0, tF = 0;
+
+      if (currentStagedItems.length === 0) {
+        container.innerHTML = `<p class="text-gray-500 italic">No foods added to this meal yet.</p>`;
+      } else {
+        container.innerHTML = currentStagedItems.map((item, idx) => {
+          tKcal += item.kcal; tC += item.carbs; tP += item.protein; tF += item.fats;
+          return `
+            <div class="flex justify-between items-center bg-brand-dark p-2 border border-brand-border rounded">
+              <span><b>${item.name}</b> (${item.grams}g)</span>
+              <div class="flex items-center gap-2">
+                <span class="text-brand-red font-bold">${item.kcal} kcal</span>
+                <button onclick="removeStagedItem(${idx})" class="text-red-500 font-bold">✕</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('basketKcal').innerText = tKcal;
+      document.getElementById('basketCarbs').innerText = tC;
+      document.getElementById('basketProtein').innerText = tP;
+      document.getElementById('basketFats').innerText = tF;
+    }
+
+    function removeStagedItem(idx) {
+      currentStagedItems.splice(idx, 1);
+      renderBasket();
+    }
+
+    function saveStagedMeal() {
+      if (currentStagedItems.length === 0) return alert("Add at least one food item.");
+      const dayType = document.getElementById('modalDayType').value;
+      const category = document.getElementById('modalMealCategory').value;
+
+      let tKcal = 0, tC = 0, tP = 0, tF = 0;
+      currentStagedItems.forEach(i => { tKcal += i.kcal; tC += i.carbs; tP += i.protein; tF += i.fats; });
+
+      meals[dayType].push({
+        category,
+        items: currentStagedItems,
+        kcal: tKcal, carbs: tC, protein: tP, fats: tF
+      });
+
+      saveState();
+      renderMeals();
+      closeMealModal();
     }
 
     function renderMeals() {
       const type = document.getElementById('mealTypeSelect').value;
-      const mealList = meals[type];
+      const mealList = meals[type] || [];
 
       let tKcal = 0, tC = 0, tP = 0, tF = 0;
-      mealList.forEach(m => {
-        tKcal += m.kcal; tC += m.carbs; tP += m.protein; tF += m.fats;
-      });
+      mealList.forEach(m => { tKcal += m.kcal; tC += m.carbs; tP += m.protein; tF += m.fats; });
 
       document.getElementById('totalKcal').innerText = `${tKcal} kcal`;
       document.getElementById('totalCarbs').innerText = `${tC}g`;
@@ -613,22 +473,23 @@
       document.getElementById('mealList').innerHTML = mealList.map((meal, idx) => `
         <div class="bg-brand-dark p-3 border border-brand-border rounded-lg flex flex-col gap-1">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-white">${meal.name} (${meal.grams}g)</span>
+            <span class="text-xs font-bold text-brand-red">${meal.category}</span>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-brand-red">${meal.kcal} kcal</span>
+              <span class="text-xs font-bold text-white">${meal.kcal} kcal</span>
               <button onclick="deleteMeal('${type}', ${idx})" class="text-xs text-red-500 hover:text-red-400 font-bold">✕ Delete</button>
             </div>
           </div>
+          <p class="text-xs text-gray-300">${meal.items.map(i => `${i.name} (${i.grams}g)`).join(' + ')}</p>
           <div class="flex gap-2 text-[10px] text-gray-400">
-            <span>Carbs: ${meal.carbs}g</span>
-            <span>Protein: ${meal.protein}g</span>
-            <span>Fats: ${meal.fats}g</span>
+            <span>C: ${meal.carbs}g</span><span>P: ${meal.protein}g</span><span>F: ${meal.fats}g</span>
           </div>
         </div>
       `).join('');
     }
 
     function openMealModal() {
+      currentStagedItems = [];
+      renderBasket();
       document.getElementById('mealModal').classList.remove('hidden');
       document.getElementById('mealModal').classList.add('flex');
     }
@@ -638,36 +499,128 @@
       document.getElementById('mealModal').classList.remove('flex');
     }
 
-    function handleSaveMeal(e) {
-      e.preventDefault();
-      const type = document.getElementById('mealModalType').value;
-      const grams = parseFloat(document.getElementById('mealModalGrams').value);
-      const name = document.getElementById('mealModalName').value;
-      const computed = calculatePreviewMacros();
-
-      meals[type].push({
-        name,
-        grams,
-        carbs: computed.carbs,
-        protein: computed.protein,
-        fats: computed.fats,
-        kcal: computed.kcal
-      });
-
-      saveState();
-      renderMeals();
-      closeMealModal();
-      e.target.reset();
-    }
-
     function deleteMeal(type, index) {
-      if (!confirm("Delete this food entry?")) return;
+      if (!confirm("Delete this meal entry?")) return;
       meals[type].splice(index, 1);
       saveState();
       renderMeals();
     }
 
-    // --- EDIT / DELETE EXERCISES ---
+    // --- SUPABASE & WORKOUT FUNCTIONS ---
+    async function fetchWeightLogs() {
+      const { data, error } = await supabaseClient.from('weight_logs').select('*').order('log_date', { ascending: false });
+      if (error) return;
+      document.getElementById('connectionStatus').className = "text-xs px-3 py-1.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold";
+      document.getElementById('connectionStatus').innerText = "⚡ Supabase: Connected";
+      document.getElementById('weightTableBody').innerHTML = data.map(log => `
+        <tr class="hover:bg-brand-dark/50">
+          <td class="p-2">${log.log_date}</td>
+          <td class="p-2 font-bold text-white">${log.weight_kg} kg</td>
+          <td class="p-2 text-right"><button onclick="deleteWeightLog('${log.id}')" class="text-xs text-red-500 font-bold">✕ Delete</button></td>
+        </tr>
+      `).join('');
+    }
+
+    async function deleteWeightLog(id) {
+      if (!confirm("Delete entry?")) return;
+      await supabaseClient.from('weight_logs').delete().eq('id', id);
+      fetchWeightLogs();
+    }
+
+    async function fetchWorkoutLogs() {
+      const routineName = routines[currentRoutineKey].title;
+      const { data } = await supabaseClient.from('workout_logs').select('*').eq('workout_day', routineName).order('created_at', { ascending: false }).limit(10);
+      const container = document.getElementById('exerciseLogHistory');
+      if (!data || data.length === 0) {
+        container.innerHTML = `<p class="text-gray-500 italic text-xs">No entries saved yet for this session.</p>`;
+        return;
+      }
+      container.innerHTML = data.map(item => `
+        <div class="flex justify-between items-center bg-brand-dark p-2 border border-brand-border rounded">
+          <div>
+            <span class="font-bold text-white block text-xs">${item.exercise_name} (Set ${item.set_number})</span>
+            <span class="text-xs text-brand-red">${item.weight_kg}kg x ${item.reps_done} reps</span>
+          </div>
+          <button onclick="deleteWorkoutLog('${item.id}')" class="text-xs text-red-500 font-bold">✕ Delete</button>
+        </div>
+      `).join('');
+    }
+
+    async function deleteWorkoutLog(id) {
+      await supabaseClient.from('workout_logs').delete().eq('id', id);
+      fetchWorkoutLogs();
+    }
+
+    async function fetchLastExercisePerformance() {
+      const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
+      if (!currentEx) return;
+      const { data } = await supabaseClient.from('workout_logs').select('weight_kg, reps_done').eq('exercise_name', currentEx.name).order('created_at', { ascending: false }).limit(1);
+      document.getElementById('lastPerfLog').innerText = (data && data.length) ? `${data[0].weight_kg}kg x ${data[0].reps_done}` : "No history";
+    }
+
+    function changeRoutine(key) {
+      currentRoutineKey = key; currentExerciseIdx = 0; currentSetIdx = 1;
+      renderExerciseCard(); fetchWorkoutLogs();
+    }
+
+    function toggleSession() {
+      if (!isSessionActive) {
+        isSessionActive = true;
+        document.getElementById('sessionBtn').innerText = '⏹ STOP SESSION';
+        document.getElementById('saveSetBtn').disabled = false;
+        overallSeconds = 0;
+        overallTimerInterval = setInterval(() => { overallSeconds++; document.getElementById('overallTimer').innerText = formatHMS(overallSeconds); }, 1000);
+        exerciseSeconds = 0;
+        exerciseTimerInterval = setInterval(() => { exerciseSeconds++; document.getElementById('exerciseTimer').innerText = formatMS(exerciseSeconds); }, 1000);
+      } else {
+        isSessionActive = false;
+        clearInterval(overallTimerInterval); clearInterval(exerciseTimerInterval);
+        document.getElementById('sessionBtn').innerText = '▶ START SESSION';
+        document.getElementById('saveSetBtn').disabled = true;
+      }
+    }
+
+    async function handleSetSubmit(e) {
+      e.preventDefault();
+      const kg = parseFloat(document.getElementById('inputKg').value);
+      const reps = parseInt(document.getElementById('inputReps').value);
+      const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
+
+      await supabaseClient.from('workout_logs').insert([{
+        workout_day: routines[currentRoutineKey].title, exercise_name: currentEx.name, set_number: currentSetIdx, weight_kg: kg, reps_done: reps, duration_seconds: exerciseSeconds
+      }]);
+
+      await fetchWorkoutLogs();
+      document.getElementById('logSetForm').reset();
+      if (currentSetIdx < currentEx.sets) currentSetIdx++;
+      else {
+        currentSetIdx = 1;
+        if (currentExerciseIdx < routines[currentRoutineKey].exercises.length - 1) currentExerciseIdx++;
+      }
+      renderExerciseCard();
+    }
+
+    async function handleWeightLog(e) {
+      e.preventDefault();
+      const date = document.getElementById('weightDate').value;
+      const weight = parseFloat(document.getElementById('weightValue').value);
+      await supabaseClient.from('weight_logs').upsert([{ log_date: date, weight_kg: weight }]);
+      document.getElementById('weightValue').value = '';
+      fetchWeightLogs();
+    }
+
+    function renderExerciseCard() {
+      const exList = routines[currentRoutineKey].exercises;
+      if (exList.length === 0) return;
+      const ex = exList[currentExerciseIdx];
+      document.getElementById('currentStepBadge').innerText = `Exercise ${currentExerciseIdx + 1} of ${exList.length}`;
+      document.getElementById('currentExerciseName').innerText = ex.name;
+      document.getElementById('targetSets').innerText = ex.sets;
+      document.getElementById('currentSetNum').innerText = currentSetIdx;
+      document.getElementById('targetReps').innerText = ex.reps;
+      fetchLastExercisePerformance();
+    }
+
     function openCustomizer() {
       document.getElementById('customizerModal').classList.remove('hidden');
       document.getElementById('customizerModal').classList.add('flex');
@@ -681,18 +634,10 @@
 
     function renderModalExerciseList(key) {
       const list = routines[key].exercises;
-      const container = document.getElementById('modalExerciseList');
-      if (list.length === 0) {
-        container.innerHTML = `<p class="text-gray-500 italic">No exercises found.</p>`;
-        return;
-      }
-      container.innerHTML = list.map((ex, idx) => `
+      document.getElementById('modalExerciseList').innerHTML = list.map((ex, idx) => `
         <div class="flex justify-between items-center bg-brand-dark p-2 rounded border border-brand-border">
           <span class="text-white font-bold">${ex.name} (${ex.sets} Sets x ${ex.reps} Reps)</span>
-          <div class="flex gap-2">
-            <button onclick="editExercise('${key}', ${idx})" class="text-amber-400 hover:text-amber-300 font-bold px-1">✏️ Edit</button>
-            <button onclick="deleteExercise('${key}', ${idx})" class="text-red-500 hover:text-red-400 font-bold px-1">✕ Delete</button>
-          </div>
+          <button onclick="deleteExercise('${key}', ${idx})" class="text-red-500 font-bold">✕ Delete</button>
         </div>
       `).join('');
     }
@@ -703,61 +648,20 @@
       const name = document.getElementById('modalExName').value.toUpperCase();
       const sets = parseInt(document.getElementById('modalExSets').value);
       const reps = parseInt(document.getElementById('modalExReps').value);
-
       routines[routineKey].exercises.push({ name, sets, reps });
-      saveState();
-      renderModalExerciseList(routineKey);
-
-      if (routineKey === currentRoutineKey) renderExerciseCard();
-
-      document.getElementById('modalExName').value = '';
-      document.getElementById('modalExSets').value = '';
-      document.getElementById('modalExReps').value = '';
+      saveState(); renderModalExerciseList(routineKey); renderExerciseCard();
     }
 
-    function editExercise(routineKey, index) {
-      const ex = routines[routineKey].exercises[index];
-      const newName = prompt("Edit Exercise Name:", ex.name);
-      if (newName === null) return;
-      const newSets = prompt("Edit Target Sets:", ex.sets);
-      if (newSets === null) return;
-      const newReps = prompt("Edit Target Reps:", ex.reps);
-      if (newReps === null) return;
-
-      routines[routineKey].exercises[index] = {
-        name: newName.toUpperCase(),
-        sets: parseInt(newSets) || ex.sets,
-        reps: parseInt(newReps) || ex.reps
-      };
-
-      saveState();
-      renderModalExerciseList(routineKey);
-      if (routineKey === currentRoutineKey) renderExerciseCard();
+    function deleteExercise(key, idx) {
+      routines[key].exercises.splice(idx, 1);
+      saveState(); renderModalExerciseList(key); renderExerciseCard();
     }
 
-    function deleteExercise(routineKey, index) {
-      if (!confirm("Delete this exercise from the routine?")) return;
-      routines[routineKey].exercises.splice(index, 1);
-      saveState();
-      renderModalExerciseList(routineKey);
-      if (routineKey === currentRoutineKey) {
-        currentExerciseIdx = 0;
-        renderExerciseCard();
-      }
-    }
-
-    // --- HELPER FUNCTIONS ---
     function formatMS(sec) {
-      const m = Math.floor(sec / 60).toString().padStart(2, '0');
-      const s = (sec % 60).toString().padStart(2, '0');
-      return `${m}:${s}`;
+      return `${Math.floor(sec / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`;
     }
-
     function formatHMS(sec) {
-      const h = Math.floor(sec / 3600).toString().padStart(2, '0');
-      const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
-      const s = (sec % 60).toString().padStart(2, '0');
-      return `${h}:${m}:${s}`;
+      return `${Math.floor(sec / 3600).toString().padStart(2, '0')}:${Math.floor((sec % 3600) / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`;
     }
   </script>
 </body>
