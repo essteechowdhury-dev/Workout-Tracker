@@ -34,7 +34,7 @@
         ⚡ Supabase: Connecting...
       </div>
       <button onclick="openCustomizer()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border rounded-lg text-sm font-semibold transition">
-        ⚙️ Customize Routines
+        ⚙️ Manage Exercises
       </button>
     </div>
   </header>
@@ -79,7 +79,6 @@
             </div>
           </div>
 
-          <!-- HISTORIC METRICS PANEL -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs text-gray-400 my-3 bg-brand-card p-2 rounded">
             <div>Target Sets: <span id="targetSets" class="text-white font-semibold">4</span></div>
             <div>Current Set: <span id="currentSetNum" class="text-brand-red font-bold">1</span></div>
@@ -138,38 +137,45 @@
                 <th class="p-2 text-right">Action</th>
               </tr>
             </thead>
-            <tbody id="weightTableBody" class="divide-y divide-brand-border">
-              <!-- Dynamic Rows -->
-            </tbody>
+            <tbody id="weightTableBody" class="divide-y divide-brand-border"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- MEAL PLAN TRACKER & CUSTOMIZER -->
+      <!-- MEAL PLAN TRACKER & MACRO CALCULATOR -->
       <div class="bg-brand-card border border-brand-border rounded-xl p-5 shadow-lg">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-bold text-white flex items-center gap-2"><span>🥗</span> MEAL PLAN</h2>
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-lg font-bold text-white flex items-center gap-2"><span>🥗</span> MEAL PLAN & MACROS</h2>
           <div class="flex items-center gap-2">
             <select id="mealTypeSelect" onchange="renderMeals()" class="bg-brand-dark text-xs text-brand-red font-bold rounded border border-brand-border p-1.5 outline-none">
               <option value="training">Training Day</option>
               <option value="nontraining">Non-Training Day</option>
             </select>
-            <button onclick="openMealModal()" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border px-2 py-1 rounded">
-              + Meal
+            <button onclick="openMealModal()" class="text-xs bg-brand-red hover:bg-brand-darkRed text-white px-2 py-1 rounded font-semibold">
+              + Add Food
             </button>
           </div>
         </div>
+
+        <!-- MACRO SUMMARY BANNER -->
+        <div id="macroSummary" class="grid grid-cols-4 gap-2 bg-brand-dark p-2 rounded-lg text-center text-xs mb-4 border border-brand-border">
+          <div><span class="text-gray-400 block">Calories</span><span id="totalKcal" class="font-bold text-brand-red">0 kcal</span></div>
+          <div><span class="text-gray-400 block">Carbs</span><span id="totalCarbs" class="font-bold text-white">0g</span></div>
+          <div><span class="text-gray-400 block">Protein</span><span id="totalProtein" class="font-bold text-white">0g</span></div>
+          <div><span class="text-gray-400 block">Fats</span><span id="totalFats" class="font-bold text-white">0g</span></div>
+        </div>
+
         <div id="mealList" class="space-y-3"></div>
       </div>
     </section>
 
   </main>
 
-  <!-- WORKOUT ROUTINE CUSTOMIZATION MODAL -->
+  <!-- EXERCISE CUSTOMIZATION & EDIT MODAL -->
   <div id="customizerModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
     <div class="bg-brand-card border border-brand-border rounded-xl p-6 max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-brand-border pb-3">
-        <h3 class="text-lg font-bold text-white">⚙️ Manage & Add Exercises</h3>
+        <h3 class="text-lg font-bold text-white">⚙️ Manage & Edit Exercises</h3>
         <button onclick="closeCustomizer()" class="text-gray-400 hover:text-white">✕</button>
       </div>
 
@@ -203,17 +209,17 @@
       </form>
 
       <div class="border-t border-brand-border pt-3">
-        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Existing Exercises in Selected Routine</h4>
+        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Existing Exercises (Click Edit to change)</h4>
         <div id="modalExerciseList" class="space-y-2 text-xs"></div>
       </div>
     </div>
   </div>
 
-  <!-- MEAL EDIT / ADD MODAL -->
+  <!-- MEAL CALORIE & MACRO MODAL -->
   <div id="mealModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
     <div class="bg-brand-card border border-brand-border rounded-xl p-6 max-w-lg w-full space-y-4">
       <div class="flex justify-between items-center border-b border-brand-border pb-3">
-        <h3 class="text-lg font-bold text-white">🥗 Add/Edit Custom Meal</h3>
+        <h3 class="text-lg font-bold text-white">🥗 Add Food & Calculate Macros</h3>
         <button onclick="closeMealModal()" class="text-gray-400 hover:text-white">✕</button>
       </div>
 
@@ -227,35 +233,45 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-gray-400 block mb-1">Meal Time</label>
-            <input type="text" id="mealModalTime" required placeholder="e.g. 14:00" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+            <label class="text-xs text-gray-400 block mb-1">Meal / Food Name</label>
+            <input type="text" id="mealModalName" required placeholder="e.g. Cooked Rice" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
           </div>
           <div>
-            <label class="text-xs text-gray-400 block mb-1">Meal Name</label>
-            <input type="text" id="mealModalName" required placeholder="e.g. Pre-Workout" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+            <label class="text-xs text-gray-400 block mb-1">Portion Weight (Grams)</label>
+            <input type="number" id="mealModalGrams" oninput="calculatePreviewMacros()" required placeholder="e.g. 150" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
           </div>
         </div>
+
+        <div class="text-xs text-gray-400 font-semibold mt-2">Base Macros Per 100g:</div>
         <div class="grid grid-cols-3 gap-2">
           <div>
-            <label class="text-xs text-gray-400 block mb-1">Carbs (g)</label>
-            <input type="number" id="mealModalCarbs" required placeholder="50" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+            <label class="text-[10px] text-gray-400 block">Carbs / 100g</label>
+            <input type="number" step="0.1" id="mealModalCarbs100" oninput="calculatePreviewMacros()" required placeholder="28" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
           </div>
           <div>
-            <label class="text-xs text-gray-400 block mb-1">Protein (g)</label>
-            <input type="number" id="mealModalProtein" required placeholder="40" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+            <label class="text-[10px] text-gray-400 block">Protein / 100g</label>
+            <input type="number" step="0.1" id="mealModalProtein100" oninput="calculatePreviewMacros()" required placeholder="2.7" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
           </div>
           <div>
-            <label class="text-xs text-gray-400 block mb-1">Fats (g)</label>
-            <input type="number" id="mealModalFats" required placeholder="10" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+            <label class="text-[10px] text-gray-400 block">Fats / 100g</label>
+            <input type="number" step="0.1" id="mealModalFats100" oninput="calculatePreviewMacros()" required placeholder="0.3" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
           </div>
         </div>
-        <div>
-          <label class="text-xs text-gray-400 block mb-1">Food Choices / Description</label>
-          <textarea id="mealModalDesc" required placeholder="e.g. 150g Rice + 150g Chicken" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none h-20"></textarea>
+
+        <!-- LIVE MACRO CALCULATION PREVIEW -->
+        <div class="bg-brand-dark p-3 rounded border border-brand-border text-xs text-gray-300">
+          <span class="block font-semibold text-brand-red mb-1">Calculated Portion Totals:</span>
+          <div class="flex justify-between">
+            <span>Calories: <b id="previewKcal" class="text-white">0</b> kcal</span>
+            <span>C: <b id="previewCarbs" class="text-white">0</b>g</span>
+            <span>P: <b id="previewProtein" class="text-white">0</b>g</span>
+            <span>F: <b id="previewFats" class="text-white">0</b>g</span>
+          </div>
         </div>
+
         <div class="flex gap-2 pt-2">
           <button type="button" onclick="closeMealModal()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 py-2 rounded font-semibold">Cancel</button>
-          <button type="submit" class="flex-1 bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded font-semibold">Save Meal</button>
+          <button type="submit" class="flex-1 bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded font-semibold">Save Food</button>
         </div>
       </form>
     </div>
@@ -324,14 +340,11 @@
 
     let meals = JSON.parse(localStorage.getItem('myMeals')) || {
       training: [
-        { time: "8:00", name: "Breakfast", carbs: 30, protein: 48, fats: 14, desc: "150g egg whites + 1 egg + 40g oats + 25g protein powder + 30g turkey slice + 20g light cheese + Vit D3 + Omega 3" },
-        { time: "14:00", name: "Pre-Workout", carbs: 55, protein: 42, fats: 8, desc: "120g cooked rice OR 150g baked potatoes + 140g chicken + vegetables" },
-        { time: "20:00", name: "Post-Workout", carbs: 70, protein: 55, fats: 9, desc: "150g cooked rice OR 180g baked potatoes + 150g chicken + vegetables + 30g protein powder + 5g Creatine + Magnesium" }
+        { name: "Oats + Egg Whites", grams: 100, carbs: 40, protein: 30, fats: 5, kcal: 325 },
+        { name: "Cooked Chicken Breast", grams: 150, carbs: 0, protein: 46, fats: 5, kcal: 240 }
       ],
       nontraining: [
-        { time: "8:00", name: "Breakfast", carbs: 30, protein: 48, fats: 14, desc: "150g egg whites + 1 egg + 40g oats + 25g protein powder + 30g turkey slice + 20g light cheese + Vit D3 + Omega 3" },
-        { time: "14:00", name: "Lunch", carbs: 34, protein: 40, fats: 7, desc: "80g cooked rice OR 120g baked potatoes + 130g chicken + vegetables" },
-        { time: "20:00", name: "Dinner", carbs: 35, protein: 52, fats: 8, desc: "80g cooked rice OR 120g baked potatoes + 140g chicken + vegetables + 30g protein powder + 5g Creatine + Magnesium" }
+        { name: "Greek Yogurt + Protein", grams: 200, carbs: 10, protein: 35, fats: 2, kcal: 198 }
       ]
     };
 
@@ -407,7 +420,7 @@
           </div>
           <div class="flex items-center gap-3">
             <span class="font-mono text-xs text-gray-400">⏱ ${formatMS(item.duration_seconds || 0)}</span>
-            <button onclick="deleteWorkoutLog('${item.id}')" class="text-xs text-red-500 hover:text-red-400 font-bold">✕</button>
+            <button onclick="deleteWorkoutLog('${item.id}')" class="text-xs text-red-500 hover:text-red-400 font-bold">✕ Delete</button>
           </div>
         </div>
       `).join('');
@@ -563,23 +576,54 @@
       fetchLastExercisePerformance();
     }
 
-    // --- MEAL MANAGEMENT & CUSTOMIZATION ---
+    // --- DYNAMIC MEAL & MACRO CALCULATOR ---
+    function calculatePreviewMacros() {
+      const grams = parseFloat(document.getElementById('mealModalGrams').value) || 0;
+      const c100 = parseFloat(document.getElementById('mealModalCarbs100').value) || 0;
+      const p100 = parseFloat(document.getElementById('mealModalProtein100').value) || 0;
+      const f100 = parseFloat(document.getElementById('mealModalFats100').value) || 0;
+
+      const carbs = Math.round((grams * c100) / 100);
+      const protein = Math.round((grams * p100) / 100);
+      const fats = Math.round((grams * f100) / 100);
+      const kcal = Math.round((carbs * 4) + (protein * 4) + (fats * 9));
+
+      document.getElementById('previewCarbs').innerText = carbs;
+      document.getElementById('previewProtein').innerText = protein;
+      document.getElementById('previewFats').innerText = fats;
+      document.getElementById('previewKcal').innerText = kcal;
+
+      return { carbs, protein, fats, kcal };
+    }
+
     function renderMeals() {
       const type = document.getElementById('mealTypeSelect').value;
-      document.getElementById('mealList').innerHTML = meals[type].map((meal, idx) => `
-        <div class="bg-brand-dark p-3 border border-brand-border rounded-lg flex flex-col gap-2">
+      const mealList = meals[type];
+
+      let tKcal = 0, tC = 0, tP = 0, tF = 0;
+      mealList.forEach(m => {
+        tKcal += m.kcal; tC += m.carbs; tP += m.protein; tF += m.fats;
+      });
+
+      document.getElementById('totalKcal').innerText = `${tKcal} kcal`;
+      document.getElementById('totalCarbs').innerText = `${tC}g`;
+      document.getElementById('totalProtein').innerText = `${tP}g`;
+      document.getElementById('totalFats').innerText = `${tF}g`;
+
+      document.getElementById('mealList').innerHTML = mealList.map((meal, idx) => `
+        <div class="bg-brand-dark p-3 border border-brand-border rounded-lg flex flex-col gap-1">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-brand-red">${meal.time} - ${meal.name}</span>
+            <span class="text-xs font-bold text-white">${meal.name} (${meal.grams}g)</span>
             <div class="flex items-center gap-2">
-              <div class="flex gap-1 text-[10px] text-gray-300">
-                <span class="bg-gray-800 px-1 rounded">C:${meal.carbs}</span>
-                <span class="bg-gray-800 px-1 rounded">P:${meal.protein}</span>
-                <span class="bg-gray-800 px-1 rounded">F:${meal.fats}</span>
-              </div>
-              <button onclick="deleteMeal('${type}', ${idx})" class="text-xs text-red-500 hover:text-red-400 font-bold ml-1">✕</button>
+              <span class="text-xs font-bold text-brand-red">${meal.kcal} kcal</span>
+              <button onclick="deleteMeal('${type}', ${idx})" class="text-xs text-red-500 hover:text-red-400 font-bold">✕ Delete</button>
             </div>
           </div>
-          <p class="text-xs text-gray-300">${meal.desc}</p>
+          <div class="flex gap-2 text-[10px] text-gray-400">
+            <span>Carbs: ${meal.carbs}g</span>
+            <span>Protein: ${meal.protein}g</span>
+            <span>Fats: ${meal.fats}g</span>
+          </div>
         </div>
       `).join('');
     }
@@ -597,16 +641,19 @@
     function handleSaveMeal(e) {
       e.preventDefault();
       const type = document.getElementById('mealModalType').value;
-      const newMeal = {
-        time: document.getElementById('mealModalTime').value,
-        name: document.getElementById('mealModalName').value,
-        carbs: parseInt(document.getElementById('mealModalCarbs').value),
-        protein: parseInt(document.getElementById('mealModalProtein').value),
-        fats: parseInt(document.getElementById('mealModalFats').value),
-        desc: document.getElementById('mealModalDesc').value
-      };
+      const grams = parseFloat(document.getElementById('mealModalGrams').value);
+      const name = document.getElementById('mealModalName').value;
+      const computed = calculatePreviewMacros();
 
-      meals[type].push(newMeal);
+      meals[type].push({
+        name,
+        grams,
+        carbs: computed.carbs,
+        protein: computed.protein,
+        fats: computed.fats,
+        kcal: computed.kcal
+      });
+
       saveState();
       renderMeals();
       closeMealModal();
@@ -614,13 +661,13 @@
     }
 
     function deleteMeal(type, index) {
-      if (!confirm("Delete this meal item?")) return;
+      if (!confirm("Delete this food entry?")) return;
       meals[type].splice(index, 1);
       saveState();
       renderMeals();
     }
 
-    // --- ROUTINE & EXERCISE MODAL CUSTOMIZATION ---
+    // --- EDIT / DELETE EXERCISES ---
     function openCustomizer() {
       document.getElementById('customizerModal').classList.remove('hidden');
       document.getElementById('customizerModal').classList.add('flex');
@@ -642,7 +689,10 @@
       container.innerHTML = list.map((ex, idx) => `
         <div class="flex justify-between items-center bg-brand-dark p-2 rounded border border-brand-border">
           <span class="text-white font-bold">${ex.name} (${ex.sets} Sets x ${ex.reps} Reps)</span>
-          <button onclick="deleteExercise('${key}', ${idx})" class="text-red-500 hover:text-red-400 font-bold px-2 py-0.5">✕ Delete</button>
+          <div class="flex gap-2">
+            <button onclick="editExercise('${key}', ${idx})" class="text-amber-400 hover:text-amber-300 font-bold px-1">✏️ Edit</button>
+            <button onclick="deleteExercise('${key}', ${idx})" class="text-red-500 hover:text-red-400 font-bold px-1">✕ Delete</button>
+          </div>
         </div>
       `).join('');
     }
@@ -663,6 +713,26 @@
       document.getElementById('modalExName').value = '';
       document.getElementById('modalExSets').value = '';
       document.getElementById('modalExReps').value = '';
+    }
+
+    function editExercise(routineKey, index) {
+      const ex = routines[routineKey].exercises[index];
+      const newName = prompt("Edit Exercise Name:", ex.name);
+      if (newName === null) return;
+      const newSets = prompt("Edit Target Sets:", ex.sets);
+      if (newSets === null) return;
+      const newReps = prompt("Edit Target Reps:", ex.reps);
+      if (newReps === null) return;
+
+      routines[routineKey].exercises[index] = {
+        name: newName.toUpperCase(),
+        sets: parseInt(newSets) || ex.sets,
+        reps: parseInt(newReps) || ex.reps
+      };
+
+      saveState();
+      renderModalExerciseList(routineKey);
+      if (routineKey === currentRoutineKey) renderExerciseCard();
     }
 
     function deleteExercise(routineKey, index) {
