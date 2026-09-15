@@ -33,7 +33,10 @@
       <div id="connectionStatus" class="text-xs px-3 py-1.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
         ⚡ Supabase: Connecting...
       </div>
-      <button onclick="openCustomizer()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border rounded-lg text-sm font-semibold transition">
+      <button onclick="openHistoryModal()" class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border rounded-lg text-sm font-semibold transition">
+        📜 Session History
+      </button>
+      <button onclick="openCustomizer()" class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border rounded-lg text-sm font-semibold transition">
         ⚙️ Manage Exercises
       </button>
     </div>
@@ -106,7 +109,7 @@
         </div>
 
         <div class="mt-4">
-          <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Saved Logs for this Session</h4>
+          <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Saved Logs for Current Routine</h4>
           <div id="exerciseLogHistory" class="space-y-2 text-sm max-h-48 overflow-y-auto pr-1">
             <p class="text-gray-500 italic text-xs">No entries saved yet for this session.</p>
           </div>
@@ -142,7 +145,7 @@
         </div>
       </div>
 
-      <!-- MEAL PLAN TRACKER & GLOBAL FOOD SEARCH -->
+      <!-- MEAL PLAN TRACKER & INDIVIDUAL MACROS -->
       <div class="bg-brand-card border border-brand-border rounded-xl p-5 shadow-lg">
         <div class="flex justify-between items-center mb-3">
           <h2 class="text-lg font-bold text-white flex items-center gap-2"><span>🥗</span> MEAL PLAN</h2>
@@ -157,7 +160,6 @@
           </div>
         </div>
 
-        <!-- MACRO SUMMARY BANNER -->
         <div id="macroSummary" class="grid grid-cols-4 gap-2 bg-brand-dark p-2 rounded-lg text-center text-xs mb-4 border border-brand-border">
           <div><span class="text-gray-400 block">Calories</span><span id="totalKcal" class="font-bold text-brand-red">0 kcal</span></div>
           <div><span class="text-gray-400 block">Carbs</span><span id="totalCarbs" class="font-bold text-white">0g</span></div>
@@ -171,7 +173,31 @@
 
   </main>
 
-  <!-- EXERCISE CUSTOMIZATION & EDIT MODAL -->
+  <!-- WORKOUT SESSION HISTORY MODAL -->
+  <div id="historyModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+    <div class="bg-brand-card border border-brand-border rounded-xl p-6 max-w-2xl w-full space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-brand-border pb-3">
+        <h3 class="text-lg font-bold text-white">📜 Review Historical Workout Sessions</h3>
+        <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-white">✕</button>
+      </div>
+
+      <div class="flex gap-2">
+        <select id="historyRoutineFilter" onchange="fetchFullWorkoutHistory()" class="bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none flex-1">
+          <option value="ALL">All Workout Sessions</option>
+          <option value="UPPER BODY 1">UPPER BODY 1</option>
+          <option value="LOWER BODY 1">LOWER BODY 1</option>
+          <option value="UPPER BODY 2">UPPER BODY 2</option>
+          <option value="LOWER BODY 2">LOWER BODY 2</option>
+        </select>
+      </div>
+
+      <div id="historyLogsContainer" class="space-y-3 text-xs max-h-96 overflow-y-auto pr-1">
+        <p class="text-gray-400">Loading workout history...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXERCISE EDIT & CUSTOMIZATION MODAL -->
   <div id="customizerModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
     <div class="bg-brand-card border border-brand-border rounded-xl p-6 max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-brand-border pb-3">
@@ -209,13 +235,13 @@
       </form>
 
       <div class="border-t border-brand-border pt-3">
-        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Existing Exercises</h4>
+        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Existing Exercises (Click Edit to change)</h4>
         <div id="modalExerciseList" class="space-y-2 text-xs"></div>
       </div>
     </div>
   </div>
 
-  <!-- MEAL SEARCH & MULTI-FOOD BUILDER MODAL -->
+  <!-- MEAL SEARCH MODAL -->
   <div id="mealModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
     <div class="bg-brand-card border border-brand-border rounded-xl p-6 max-w-xl w-full space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-brand-border pb-3">
@@ -244,26 +270,23 @@
         </div>
       </div>
 
-      <!-- SEARCH BAR / BARCODE INPUT -->
       <div class="border-t border-brand-border pt-3">
-        <label class="text-xs text-gray-400 block mb-1">Search Food DB or Enter Barcode Number</label>
+        <label class="text-xs text-gray-400 block mb-1">Search Food DB or Barcode</label>
         <div class="flex gap-2">
           <input type="text" id="foodSearchInput" placeholder="e.g. Cooked Chicken Thigh OR 737628001143" class="flex-1 bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
           <button onclick="searchFoodAPI()" class="bg-brand-red hover:bg-brand-darkRed text-white px-3 py-2 rounded text-xs font-bold">Search</button>
         </div>
       </div>
 
-      <!-- SEARCH RESULTS PANEL -->
       <div id="searchResults" class="hidden max-h-40 overflow-y-auto bg-brand-dark border border-brand-border rounded p-2 space-y-1"></div>
 
-      <!-- PORTION ADJUSTMENT SECTION -->
       <div id="portionSection" class="hidden bg-brand-dark border border-brand-border p-3 rounded space-y-2">
         <div class="flex justify-between text-xs">
           <span id="selectedFoodName" class="font-bold text-white">Food Name</span>
           <span class="text-gray-400">Base per 100g</span>
         </div>
         <div class="flex gap-2 items-center">
-          <input type="number" id="selectedWeight" placeholder="Grams" value="100" oninput="recalculateSelectedPortion()" class="w-24 bg-brand-card border border-brand-border rounded p-2 text-white text-xs">
+          <input type="number" id="selectedWeight" placeholder="Grams" value="100" class="w-24 bg-brand-card border border-brand-border rounded p-2 text-white text-xs">
           <span class="text-xs text-gray-400">grams</span>
           <button onclick="addItemToCurrentMeal()" class="ml-auto bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-bold">
             + Add to Meal
@@ -271,7 +294,6 @@
         </div>
       </div>
 
-      <!-- CURRENT MEAL STAGING BASKET -->
       <div class="border-t border-brand-border pt-3">
         <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Meal Ingredients Basket</h4>
         <div id="mealBasket" class="space-y-2 text-xs max-h-36 overflow-y-auto">
@@ -279,7 +301,6 @@
         </div>
       </div>
 
-      <!-- CUMULATIVE MEAL SUMMARY -->
       <div class="bg-brand-dark p-3 rounded border border-brand-border text-xs flex justify-between">
         <span>Total: <b id="basketKcal" class="text-brand-red">0</b> kcal</span>
         <span>C: <b id="basketCarbs" class="text-white">0</b>g</span>
@@ -332,7 +353,41 @@
       localStorage.setItem('myMeals', JSON.stringify(meals));
     }
 
-    // --- OPEN FOOD FACTS API SEARCH ---
+    // --- MEALS WITH INDIVIDUAL MACROS ---
+    function renderMeals() {
+      const type = document.getElementById('mealTypeSelect').value;
+      const mealList = meals[type] || [];
+
+      let tKcal = 0, tC = 0, tP = 0, tF = 0;
+      mealList.forEach(m => { tKcal += m.kcal; tC += m.carbs; tP += m.protein; tF += m.fats; });
+
+      document.getElementById('totalKcal').innerText = `${tKcal} kcal`;
+      document.getElementById('totalCarbs').innerText = `${tC}g`;
+      document.getElementById('totalProtein').innerText = `${tP}g`;
+      document.getElementById('totalFats').innerText = `${tF}g`;
+
+      document.getElementById('mealList').innerHTML = mealList.map((meal, idx) => `
+        <div class="bg-brand-dark p-3 border border-brand-border rounded-lg flex flex-col gap-2">
+          <div class="flex justify-between items-center border-b border-brand-border pb-1">
+            <span class="text-xs font-bold text-brand-red">${meal.category}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-white">${meal.kcal} kcal</span>
+              <button onclick="deleteMeal('${type}', ${idx})" class="text-xs text-red-500 font-bold">✕ Delete</button>
+            </div>
+          </div>
+          <div class="space-y-1">
+            ${meal.items.map(item => `
+              <div class="flex justify-between items-center text-xs bg-brand-card p-1.5 rounded">
+                <span class="text-gray-200">${item.name} (${item.grams}g)</span>
+                <span class="text-[10px] text-gray-400 font-mono">${item.kcal} kcal | C:${item.carbs}g P:${item.protein}g F:${item.fats}g</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // --- FOOD SEARCH & STAGING ---
     async function searchFoodAPI() {
       const query = document.getElementById('foodSearchInput').value.trim();
       if (!query) return;
@@ -341,7 +396,6 @@
       resultsContainer.classList.remove('hidden');
       resultsContainer.innerHTML = `<p class="text-xs text-amber-400">Searching global database...</p>`;
 
-      // Is barcode? (All numbers)
       if (/^\d+$/.test(query)) {
         const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${query}.json`);
         const data = await res.json();
@@ -374,7 +428,7 @@
 
     function renderSearchResults(items) {
       const container = document.getElementById('searchResults');
-      container.innerHTML = items.map((item, idx) => `
+      container.innerHTML = items.map(item => `
         <div onclick='selectFoodItem(${JSON.stringify(item)})' class="p-1.5 hover:bg-brand-card rounded cursor-pointer text-xs flex justify-between">
           <span class="font-bold text-white">${item.name}</span>
           <span class="text-gray-400 text-[10px]">C:${Math.round(item.c100)}g | P:${Math.round(item.p100)}g | F:${Math.round(item.f100)}g</span>
@@ -397,11 +451,7 @@
       const fats = Math.round((grams * activeSelectedFood.f100) / 100);
       const kcal = Math.round((carbs * 4) + (protein * 4) + (fats * 9));
 
-      currentStagedItems.push({
-        name: activeSelectedFood.name,
-        grams, carbs, protein, fats, kcal
-      });
-
+      currentStagedItems.push({ name: activeSelectedFood.name, grams, carbs, protein, fats, kcal });
       renderBasket();
       document.getElementById('portionSection').classList.add('hidden');
       document.getElementById('searchResults').classList.add('hidden');
@@ -447,44 +497,10 @@
       let tKcal = 0, tC = 0, tP = 0, tF = 0;
       currentStagedItems.forEach(i => { tKcal += i.kcal; tC += i.carbs; tP += i.protein; tF += i.fats; });
 
-      meals[dayType].push({
-        category,
-        items: currentStagedItems,
-        kcal: tKcal, carbs: tC, protein: tP, fats: tF
-      });
-
+      meals[dayType].push({ category, items: currentStagedItems, kcal: tKcal, carbs: tC, protein: tP, fats: tF });
       saveState();
       renderMeals();
       closeMealModal();
-    }
-
-    function renderMeals() {
-      const type = document.getElementById('mealTypeSelect').value;
-      const mealList = meals[type] || [];
-
-      let tKcal = 0, tC = 0, tP = 0, tF = 0;
-      mealList.forEach(m => { tKcal += m.kcal; tC += m.carbs; tP += m.protein; tF += m.fats; });
-
-      document.getElementById('totalKcal').innerText = `${tKcal} kcal`;
-      document.getElementById('totalCarbs').innerText = `${tC}g`;
-      document.getElementById('totalProtein').innerText = `${tP}g`;
-      document.getElementById('totalFats').innerText = `${tF}g`;
-
-      document.getElementById('mealList').innerHTML = mealList.map((meal, idx) => `
-        <div class="bg-brand-dark p-3 border border-brand-border rounded-lg flex flex-col gap-1">
-          <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-brand-red">${meal.category}</span>
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-white">${meal.kcal} kcal</span>
-              <button onclick="deleteMeal('${type}', ${idx})" class="text-xs text-red-500 hover:text-red-400 font-bold">✕ Delete</button>
-            </div>
-          </div>
-          <p class="text-xs text-gray-300">${meal.items.map(i => `${i.name} (${i.grams}g)`).join(' + ')}</p>
-          <div class="flex gap-2 text-[10px] text-gray-400">
-            <span>C: ${meal.carbs}g</span><span>P: ${meal.protein}g</span><span>F: ${meal.fats}g</span>
-          </div>
-        </div>
-      `).join('');
     }
 
     function openMealModal() {
@@ -506,10 +522,112 @@
       renderMeals();
     }
 
-    // --- SUPABASE & WORKOUT FUNCTIONS ---
+    // --- HISTORICAL WORKOUT REVIEW MODAL ---
+    function openHistoryModal() {
+      document.getElementById('historyModal').classList.remove('hidden');
+      document.getElementById('historyModal').classList.add('flex');
+      fetchFullWorkoutHistory();
+    }
+
+    function closeHistoryModal() {
+      document.getElementById('historyModal').classList.add('hidden');
+      document.getElementById('historyModal').classList.remove('flex');
+    }
+
+    async function fetchFullWorkoutHistory() {
+      const filter = document.getElementById('historyRoutineFilter').value;
+      let query = supabaseClient.from('workout_logs').select('*').order('created_at', { ascending: false });
+
+      if (filter !== 'ALL') {
+        query = query.eq('workout_day', filter);
+      }
+
+      const { data, error } = await query;
+      const container = document.getElementById('historyLogsContainer');
+
+      if (error || !data || data.length === 0) {
+        container.innerHTML = `<p class="text-gray-500 italic">No recorded workout sessions found.</p>`;
+        return;
+      }
+
+      container.innerHTML = data.map(log => `
+        <div class="bg-brand-dark p-3 rounded border border-brand-border flex justify-between items-center">
+          <div>
+            <span class="text-brand-red font-bold block text-xs">${log.workout_day} • ${new Date(log.created_at).toLocaleDateString()}</span>
+            <span class="text-white font-bold">${log.exercise_name} (Set ${log.set_number})</span>
+            <span class="text-gray-400 block text-[11px]">${log.weight_kg} kg x ${log.reps_done} reps</span>
+          </div>
+          <span class="font-mono text-gray-400 text-xs">⏱ ${formatMS(log.duration_seconds || 0)}</span>
+        </div>
+      `).join('');
+    }
+
+    // --- WORKOUT MANAGEMENT WITH EDIT BUTTONS ---
+    function openCustomizer() {
+      document.getElementById('customizerModal').classList.remove('hidden');
+      document.getElementById('customizerModal').classList.add('flex');
+      renderModalExerciseList(document.getElementById('modalRoutineSelect').value);
+    }
+
+    function closeCustomizer() {
+      document.getElementById('customizerModal').classList.add('hidden');
+      document.getElementById('customizerModal').classList.remove('flex');
+    }
+
+    function renderModalExerciseList(key) {
+      const list = routines[key].exercises;
+      document.getElementById('modalExerciseList').innerHTML = list.map((ex, idx) => `
+        <div class="flex justify-between items-center bg-brand-dark p-2 rounded border border-brand-border">
+          <span class="text-white font-bold">${ex.name} (${ex.sets} Sets x ${ex.reps} Reps)</span>
+          <div class="flex gap-2">
+            <button onclick="editExercise('${key}', ${idx})" class="text-amber-400 font-bold hover:text-amber-300">✏️ Edit</button>
+            <button onclick="deleteExercise('${key}', ${idx})" class="text-red-500 font-bold hover:text-red-400">✕ Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function handleAddExercise(e) {
+      e.preventDefault();
+      const routineKey = document.getElementById('modalRoutineSelect').value;
+      const name = document.getElementById('modalExName').value.toUpperCase();
+      const sets = parseInt(document.getElementById('modalExSets').value);
+      const reps = parseInt(document.getElementById('modalExReps').value);
+
+      routines[routineKey].exercises.push({ name, sets, reps });
+      saveState(); renderModalExerciseList(routineKey); renderExerciseCard();
+      document.getElementById('modalExName').value = '';
+    }
+
+    function editExercise(routineKey, index) {
+      const ex = routines[routineKey].exercises[index];
+      const newName = prompt("Edit Exercise Name:", ex.name);
+      if (newName === null) return;
+      const newSets = prompt("Edit Target Sets:", ex.sets);
+      if (newSets === null) return;
+      const newReps = prompt("Edit Target Reps:", ex.reps);
+      if (newReps === null) return;
+
+      routines[routineKey].exercises[index] = {
+        name: newName.toUpperCase(),
+        sets: parseInt(newSets) || ex.sets,
+        reps: parseInt(newReps) || ex.reps
+      };
+
+      saveState();
+      renderModalExerciseList(routineKey);
+      if (routineKey === currentRoutineKey) renderExerciseCard();
+    }
+
+    function deleteExercise(key, idx) {
+      routines[key].exercises.splice(idx, 1);
+      saveState(); renderModalExerciseList(key); renderExerciseCard();
+    }
+
+    // --- SUPABASE ENGINE ---
     async function fetchWeightLogs() {
-      const { data, error } = await supabaseClient.from('weight_logs').select('*').order('log_date', { ascending: false });
-      if (error) return;
+      const { data } = await supabaseClient.from('weight_logs').select('*').order('log_date', { ascending: false });
+      if (!data) return;
       document.getElementById('connectionStatus').className = "text-xs px-3 py-1.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold";
       document.getElementById('connectionStatus').innerText = "⚡ Supabase: Connected";
       document.getElementById('weightTableBody').innerHTML = data.map(log => `
@@ -522,7 +640,6 @@
     }
 
     async function deleteWeightLog(id) {
-      if (!confirm("Delete entry?")) return;
       await supabaseClient.from('weight_logs').delete().eq('id', id);
       fetchWeightLogs();
     }
@@ -619,42 +736,6 @@
       document.getElementById('currentSetNum').innerText = currentSetIdx;
       document.getElementById('targetReps').innerText = ex.reps;
       fetchLastExercisePerformance();
-    }
-
-    function openCustomizer() {
-      document.getElementById('customizerModal').classList.remove('hidden');
-      document.getElementById('customizerModal').classList.add('flex');
-      renderModalExerciseList(document.getElementById('modalRoutineSelect').value);
-    }
-
-    function closeCustomizer() {
-      document.getElementById('customizerModal').classList.add('hidden');
-      document.getElementById('customizerModal').classList.remove('flex');
-    }
-
-    function renderModalExerciseList(key) {
-      const list = routines[key].exercises;
-      document.getElementById('modalExerciseList').innerHTML = list.map((ex, idx) => `
-        <div class="flex justify-between items-center bg-brand-dark p-2 rounded border border-brand-border">
-          <span class="text-white font-bold">${ex.name} (${ex.sets} Sets x ${ex.reps} Reps)</span>
-          <button onclick="deleteExercise('${key}', ${idx})" class="text-red-500 font-bold">✕ Delete</button>
-        </div>
-      `).join('');
-    }
-
-    function handleAddExercise(e) {
-      e.preventDefault();
-      const routineKey = document.getElementById('modalRoutineSelect').value;
-      const name = document.getElementById('modalExName').value.toUpperCase();
-      const sets = parseInt(document.getElementById('modalExSets').value);
-      const reps = parseInt(document.getElementById('modalExReps').value);
-      routines[routineKey].exercises.push({ name, sets, reps });
-      saveState(); renderModalExerciseList(routineKey); renderExerciseCard();
-    }
-
-    function deleteExercise(key, idx) {
-      routines[key].exercises.splice(idx, 1);
-      saveState(); renderModalExerciseList(key); renderExerciseCard();
     }
 
     function formatMS(sec) {
