@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Personal Fitness & Workout Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
@@ -35,7 +34,7 @@
         ⚡ Supabase: Connecting...
       </div>
       <button onclick="openCustomizer()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border rounded-lg text-sm font-semibold transition">
-        ⚙️ Customize Plan
+        ⚙️ Customize Routines
       </button>
     </div>
   </header>
@@ -80,10 +79,12 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-3 gap-2 text-center text-xs text-gray-400 my-3 bg-brand-card p-2 rounded">
+          <!-- HISTORIC METRICS PANEL -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs text-gray-400 my-3 bg-brand-card p-2 rounded">
             <div>Target Sets: <span id="targetSets" class="text-white font-semibold">4</span></div>
             <div>Current Set: <span id="currentSetNum" class="text-brand-red font-bold">1</span></div>
             <div>Rep Target: <span id="targetReps" class="text-white font-semibold">10</span></div>
+            <div>Last Log: <span id="lastPerfLog" class="text-emerald-400 font-semibold">Loading...</span></div>
           </div>
 
           <form id="logSetForm" onsubmit="handleSetSubmit(event)" class="space-y-3 mt-4">
@@ -106,7 +107,7 @@
         </div>
 
         <div class="mt-4">
-          <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Today's Saved Supabase Logs</h4>
+          <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Saved Logs for this Session</h4>
           <div id="exerciseLogHistory" class="space-y-2 text-sm max-h-48 overflow-y-auto pr-1">
             <p class="text-gray-500 italic text-xs">No entries saved yet for this session.</p>
           </div>
@@ -116,9 +117,11 @@
 
     <!-- LOG BOOK & MEAL PLAN -->
     <section class="lg:col-span-5 space-y-6">
+
+      <!-- LOG BOOK -->
       <div class="bg-brand-card border border-brand-border rounded-xl p-5 shadow-lg">
         <h2 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
-          <span>⚖️</span> LOG BOOK (SUPABASE CONNECTED)
+          <span>⚖️</span> LOG BOOK (BODYWEIGHT)
         </h2>
         <form onsubmit="handleWeightLog(event)" class="flex gap-2 mb-4">
           <input type="date" id="weightDate" required class="bg-brand-dark border border-brand-border text-white text-sm rounded p-2 outline-none focus:border-brand-red">
@@ -132,22 +135,29 @@
               <tr>
                 <th class="p-2">Date</th>
                 <th class="p-2">Weight</th>
+                <th class="p-2 text-right">Action</th>
               </tr>
             </thead>
             <tbody id="weightTableBody" class="divide-y divide-brand-border">
-              <!-- Supabase dynamic rows -->
+              <!-- Dynamic Rows -->
             </tbody>
           </table>
         </div>
       </div>
 
+      <!-- MEAL PLAN TRACKER & CUSTOMIZER -->
       <div class="bg-brand-card border border-brand-border rounded-xl p-5 shadow-lg">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-bold text-white flex items-center gap-2"><span>🥗</span> MEAL PLAN</h2>
-          <select id="mealTypeSelect" onchange="renderMeals()" class="bg-brand-dark text-xs text-brand-red font-bold rounded border border-brand-border p-1.5 outline-none">
-            <option value="training">Training Day (1,560 - 1,600 kcal)</option>
-            <option value="nontraining">Non-Training Day (1,260 - 1,310 kcal)</option>
-          </select>
+          <div class="flex items-center gap-2">
+            <select id="mealTypeSelect" onchange="renderMeals()" class="bg-brand-dark text-xs text-brand-red font-bold rounded border border-brand-border p-1.5 outline-none">
+              <option value="training">Training Day</option>
+              <option value="nontraining">Non-Training Day</option>
+            </select>
+            <button onclick="openMealModal()" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border px-2 py-1 rounded">
+              + Meal
+            </button>
+          </div>
         </div>
         <div id="mealList" class="space-y-3"></div>
       </div>
@@ -155,18 +165,18 @@
 
   </main>
 
-  <!-- CUSTOMIZATION MODAL -->
+  <!-- WORKOUT ROUTINE CUSTOMIZATION MODAL -->
   <div id="customizerModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
-    <div class="bg-brand-card border border-brand-border rounded-xl p-6 max-w-lg w-full space-y-4">
+    <div class="bg-brand-card border border-brand-border rounded-xl p-6 max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-brand-border pb-3">
-        <h3 class="text-lg font-bold text-white">⚙️ Add New Exercise</h3>
+        <h3 class="text-lg font-bold text-white">⚙️ Manage & Add Exercises</h3>
         <button onclick="closeCustomizer()" class="text-gray-400 hover:text-white">✕</button>
       </div>
 
       <form onsubmit="handleAddExercise(event)" class="space-y-3">
         <div>
           <label class="text-xs text-gray-400 block mb-1">Target Routine</label>
-          <select id="modalRoutineSelect" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+          <select id="modalRoutineSelect" onchange="renderModalExerciseList(this.value)" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
             <option value="upper1">Monday - UPPER BODY 1</option>
             <option value="lower1">Tuesday - LOWER BODY 1</option>
             <option value="upper2">Thursday - UPPER BODY 2</option>
@@ -187,9 +197,65 @@
             <input type="number" id="modalExReps" required placeholder="10" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
           </div>
         </div>
+        <button type="submit" class="w-full bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded font-semibold">
+          Add Exercise to Routine
+        </button>
+      </form>
+
+      <div class="border-t border-brand-border pt-3">
+        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Existing Exercises in Selected Routine</h4>
+        <div id="modalExerciseList" class="space-y-2 text-xs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEAL EDIT / ADD MODAL -->
+  <div id="mealModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+    <div class="bg-brand-card border border-brand-border rounded-xl p-6 max-w-lg w-full space-y-4">
+      <div class="flex justify-between items-center border-b border-brand-border pb-3">
+        <h3 class="text-lg font-bold text-white">🥗 Add/Edit Custom Meal</h3>
+        <button onclick="closeMealModal()" class="text-gray-400 hover:text-white">✕</button>
+      </div>
+
+      <form onsubmit="handleSaveMeal(event)" class="space-y-3">
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Day Type</label>
+          <select id="mealModalType" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+            <option value="training">Training Day</option>
+            <option value="nontraining">Non-Training Day</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Meal Time</label>
+            <input type="text" id="mealModalTime" required placeholder="e.g. 14:00" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Meal Name</label>
+            <input type="text" id="mealModalName" required placeholder="e.g. Pre-Workout" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Carbs (g)</label>
+            <input type="number" id="mealModalCarbs" required placeholder="50" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Protein (g)</label>
+            <input type="number" id="mealModalProtein" required placeholder="40" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Fats (g)</label>
+            <input type="number" id="mealModalFats" required placeholder="10" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Food Choices / Description</label>
+          <textarea id="mealModalDesc" required placeholder="e.g. 150g Rice + 150g Chicken" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none h-20"></textarea>
+        </div>
         <div class="flex gap-2 pt-2">
-          <button type="button" onclick="closeCustomizer()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 py-2 rounded font-semibold">Cancel</button>
-          <button type="submit" class="flex-1 bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded font-semibold">Add Exercise</button>
+          <button type="button" onclick="closeMealModal()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 py-2 rounded font-semibold">Cancel</button>
+          <button type="submit" class="flex-1 bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded font-semibold">Save Meal</button>
         </div>
       </form>
     </div>
@@ -202,7 +268,7 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // --- STATE MANAGEMENT ---
-    let routines = {
+    let routines = JSON.parse(localStorage.getItem('myRoutines')) || {
       upper1: {
         title: "UPPER BODY 1",
         exercises: [
@@ -256,7 +322,7 @@
       }
     };
 
-    let meals = {
+    let meals = JSON.parse(localStorage.getItem('myMeals')) || {
       training: [
         { time: "8:00", name: "Breakfast", carbs: 30, protein: 48, fats: 14, desc: "150g egg whites + 1 egg + 40g oats + 25g protein powder + 30g turkey slice + 20g light cheese + Vit D3 + Omega 3" },
         { time: "14:00", name: "Pre-Workout", carbs: 55, protein: 42, fats: 8, desc: "120g cooked rice OR 150g baked potatoes + 140g chicken + vegetables" },
@@ -284,7 +350,12 @@
       fetchWorkoutLogs();
     });
 
-    // --- SUPABASE DATA FETCHING ---
+    function saveState() {
+      localStorage.setItem('myRoutines', JSON.stringify(routines));
+      localStorage.setItem('myMeals', JSON.stringify(meals));
+    }
+
+    // --- SUPABASE DATA & DELETION ---
     async function fetchWeightLogs() {
       const { data, error } = await supabaseClient.from('weight_logs').select('*').order('log_date', { ascending: false });
       if (error) return console.error(error);
@@ -297,8 +368,18 @@
         <tr class="hover:bg-brand-dark/50">
           <td class="p-2">${log.log_date}</td>
           <td class="p-2 font-bold text-white">${log.weight_kg} kg</td>
+          <td class="p-2 text-right">
+            <button onclick="deleteWeightLog('${log.id}')" class="text-xs text-red-500 hover:text-red-400 font-bold px-2 py-0.5 rounded border border-red-500/20">✕ Delete</button>
+          </td>
         </tr>
       `).join('');
+    }
+
+    async function deleteWeightLog(id) {
+      if (!confirm("Are you sure you want to delete this weight log entry?")) return;
+      const { error } = await supabaseClient.from('weight_logs').delete().eq('id', id);
+      if (error) alert("Error deleting log: " + error.message);
+      else fetchWeightLogs();
     }
 
     async function fetchWorkoutLogs() {
@@ -313,7 +394,7 @@
       if (error) return console.error(error);
 
       const container = document.getElementById('exerciseLogHistory');
-      if (data.length === 0) {
+      if (!data || data.length === 0) {
         container.innerHTML = `<p class="text-gray-500 italic text-xs">No entries saved yet for this session.</p>`;
         return;
       }
@@ -324,9 +405,41 @@
             <span class="font-bold text-white block text-xs">${item.exercise_name} (Set ${item.set_number})</span>
             <span class="text-xs text-brand-red">${item.weight_kg}kg x ${item.reps_done} reps</span>
           </div>
-          <span class="font-mono text-xs text-gray-400">⏱ ${formatMS(item.duration_seconds || 0)}</span>
+          <div class="flex items-center gap-3">
+            <span class="font-mono text-xs text-gray-400">⏱ ${formatMS(item.duration_seconds || 0)}</span>
+            <button onclick="deleteWorkoutLog('${item.id}')" class="text-xs text-red-500 hover:text-red-400 font-bold">✕</button>
+          </div>
         </div>
       `).join('');
+    }
+
+    async function deleteWorkoutLog(id) {
+      if (!confirm("Delete this exercise set log?")) return;
+      const { error } = await supabaseClient.from('workout_logs').delete().eq('id', id);
+      if (error) alert("Error: " + error.message);
+      else {
+        fetchWorkoutLogs();
+        fetchLastExercisePerformance();
+      }
+    }
+
+    async function fetchLastExercisePerformance() {
+      const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
+      if (!currentEx) return;
+
+      const { data, error } = await supabaseClient
+        .from('workout_logs')
+        .select('weight_kg, reps_done')
+        .eq('exercise_name', currentEx.name)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      const badge = document.getElementById('lastPerfLog');
+      if (error || !data || data.length === 0) {
+        badge.innerText = "No history";
+      } else {
+        badge.innerText = `${data[0].weight_kg}kg x ${data[0].reps_done}`;
+      }
     }
 
     // --- WORKOUT ENGINE LOGIC ---
@@ -390,7 +503,6 @@
       const reps = parseInt(document.getElementById('inputReps').value);
       const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
 
-      // Save Set to Supabase
       const { error } = await supabaseClient.from('workout_logs').insert([{
         workout_day: routines[currentRoutineKey].title,
         exercise_name: currentEx.name,
@@ -401,24 +513,22 @@
       }]);
 
       if (error) {
-        alert("Error saving log to Supabase: " + error.message);
+        alert("Error saving log: " + error.message);
         return;
       }
 
       await fetchWorkoutLogs();
       document.getElementById('logSetForm').reset();
 
-      // Check sets advance
       if (currentSetIdx < currentEx.sets) {
         currentSetIdx++;
       } else {
-        // Move to next exercise
         currentSetIdx = 1;
         if (currentExerciseIdx < routines[currentRoutineKey].exercises.length - 1) {
           currentExerciseIdx++;
           startExerciseTimer();
         } else {
-          alert("🎉 Complete workout session finished!");
+          alert("🎉 Workout session completed!");
           stopSession();
         }
       }
@@ -439,24 +549,34 @@
     }
 
     function renderExerciseCard() {
-      const ex = routines[currentRoutineKey].exercises[currentExerciseIdx];
-      document.getElementById('currentStepBadge').innerText = `Exercise ${currentExerciseIdx + 1} of ${routines[currentRoutineKey].exercises.length}`;
+      const exList = routines[currentRoutineKey].exercises;
+      if (exList.length === 0) {
+        document.getElementById('currentExerciseName').innerText = "NO EXERCISES ADDED";
+        return;
+      }
+      const ex = exList[currentExerciseIdx];
+      document.getElementById('currentStepBadge').innerText = `Exercise ${currentExerciseIdx + 1} of ${exList.length}`;
       document.getElementById('currentExerciseName').innerText = ex.name;
       document.getElementById('targetSets').innerText = ex.sets;
       document.getElementById('currentSetNum').innerText = currentSetIdx;
       document.getElementById('targetReps').innerText = ex.reps;
+      fetchLastExercisePerformance();
     }
 
+    // --- MEAL MANAGEMENT & CUSTOMIZATION ---
     function renderMeals() {
       const type = document.getElementById('mealTypeSelect').value;
-      document.getElementById('mealList').innerHTML = meals[type].map(meal => `
+      document.getElementById('mealList').innerHTML = meals[type].map((meal, idx) => `
         <div class="bg-brand-dark p-3 border border-brand-border rounded-lg flex flex-col gap-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-bold text-brand-red">${meal.time} - ${meal.name}</span>
-            <div class="flex gap-2 text-[10px] text-gray-300">
-              <span class="bg-gray-800 px-1.5 py-0.5 rounded">C: ${meal.carbs}g</span>
-              <span class="bg-gray-800 px-1.5 py-0.5 rounded">P: ${meal.protein}g</span>
-              <span class="bg-gray-800 px-1.5 py-0.5 rounded">F: ${meal.fats}g</span>
+            <div class="flex items-center gap-2">
+              <div class="flex gap-1 text-[10px] text-gray-300">
+                <span class="bg-gray-800 px-1 rounded">C:${meal.carbs}</span>
+                <span class="bg-gray-800 px-1 rounded">P:${meal.protein}</span>
+                <span class="bg-gray-800 px-1 rounded">F:${meal.fats}</span>
+              </div>
+              <button onclick="deleteMeal('${type}', ${idx})" class="text-xs text-red-500 hover:text-red-400 font-bold ml-1">✕</button>
             </div>
           </div>
           <p class="text-xs text-gray-300">${meal.desc}</p>
@@ -464,15 +584,67 @@
       `).join('');
     }
 
-    // --- MODAL CONTROLS ---
+    function openMealModal() {
+      document.getElementById('mealModal').classList.remove('hidden');
+      document.getElementById('mealModal').classList.add('flex');
+    }
+
+    function closeMealModal() {
+      document.getElementById('mealModal').classList.add('hidden');
+      document.getElementById('mealModal').classList.remove('flex');
+    }
+
+    function handleSaveMeal(e) {
+      e.preventDefault();
+      const type = document.getElementById('mealModalType').value;
+      const newMeal = {
+        time: document.getElementById('mealModalTime').value,
+        name: document.getElementById('mealModalName').value,
+        carbs: parseInt(document.getElementById('mealModalCarbs').value),
+        protein: parseInt(document.getElementById('mealModalProtein').value),
+        fats: parseInt(document.getElementById('mealModalFats').value),
+        desc: document.getElementById('mealModalDesc').value
+      };
+
+      meals[type].push(newMeal);
+      saveState();
+      renderMeals();
+      closeMealModal();
+      e.target.reset();
+    }
+
+    function deleteMeal(type, index) {
+      if (!confirm("Delete this meal item?")) return;
+      meals[type].splice(index, 1);
+      saveState();
+      renderMeals();
+    }
+
+    // --- ROUTINE & EXERCISE MODAL CUSTOMIZATION ---
     function openCustomizer() {
       document.getElementById('customizerModal').classList.remove('hidden');
       document.getElementById('customizerModal').classList.add('flex');
+      renderModalExerciseList(document.getElementById('modalRoutineSelect').value);
     }
 
     function closeCustomizer() {
       document.getElementById('customizerModal').classList.add('hidden');
       document.getElementById('customizerModal').classList.remove('flex');
+    }
+
+    function renderModalExerciseList(key) {
+      const list = routines[key].exercises;
+      const container = document.getElementById('modalExerciseList');
+      if (list.length === 0) {
+        container.innerHTML = `<p class="text-gray-500 italic">No exercises found.</p>`;
+        return;
+      }
+      container.innerHTML = list.map((ex, idx) => `
+        <div class="flex justify-between items-center bg-brand-dark p-2 rounded border border-brand-border">
+          <span class="text-white font-bold">${ex.name} (${ex.sets} Sets x ${ex.reps} Reps)</span>
+          <button onclick="deleteExercise('${key}', ${idx})" class="text-red-500 hover:text-red-400 font-bold px-2 py-0.5">✕ Delete</button>
+        </div>
+      `).join('');
     }
 
     function handleAddExercise(e) {
@@ -483,14 +655,25 @@
       const reps = parseInt(document.getElementById('modalExReps').value);
 
       routines[routineKey].exercises.push({ name, sets, reps });
+      saveState();
+      renderModalExerciseList(routineKey);
 
+      if (routineKey === currentRoutineKey) renderExerciseCard();
+
+      document.getElementById('modalExName').value = '';
+      document.getElementById('modalExSets').value = '';
+      document.getElementById('modalExReps').value = '';
+    }
+
+    function deleteExercise(routineKey, index) {
+      if (!confirm("Delete this exercise from the routine?")) return;
+      routines[routineKey].exercises.splice(index, 1);
+      saveState();
+      renderModalExerciseList(routineKey);
       if (routineKey === currentRoutineKey) {
+        currentExerciseIdx = 0;
         renderExerciseCard();
       }
-
-      closeCustomizer();
-      e.target.reset();
-      alert(`Added ${name} to ${routines[routineKey].title}!`);
     }
 
     // --- HELPER FUNCTIONS ---
