@@ -236,7 +236,7 @@
       </form>
 
       <div class="border-t border-brand-border pt-3">
-        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Existing Exercises</h4>
+        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Existing Exercises (Click Edit to change)</h4>
         <div id="modalExerciseList" class="space-y-2 text-xs"></div>
       </div>
     </div>
@@ -274,22 +274,44 @@
       <div class="border-t border-brand-border pt-3">
         <label class="text-xs text-gray-400 block mb-1">Search Food DB or Barcode</label>
         <div class="flex gap-2">
-          <input type="text" id="foodSearchInput" placeholder="e.g. Whole Egg, Cooked Chicken Thigh, Oats" class="flex-1 bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
+          <input type="text" id="foodSearchInput" placeholder="e.g. Whole Egg, Whole Wheat Bread, Oats" class="flex-1 bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
           <button onclick="searchFoodAPI()" class="bg-brand-red hover:bg-brand-darkRed text-white px-3 py-2 rounded text-xs font-bold">Search</button>
         </div>
       </div>
 
       <div id="searchResults" class="hidden max-h-40 overflow-y-auto bg-brand-dark border border-brand-border rounded p-2 space-y-1"></div>
 
-      <div id="portionSection" class="hidden bg-brand-dark border border-brand-border p-3 rounded space-y-2">
+      <!-- PORTION & EDITABLE MACROS SECTION -->
+      <div id="portionSection" class="hidden bg-brand-dark border border-brand-border p-3 rounded space-y-3">
         <div class="flex justify-between text-xs">
           <span id="selectedFoodName" class="font-bold text-white">Food Name</span>
-          <span class="text-gray-400">Base per 100g</span>
+          <span id="macroNoticeBadge" class="text-gray-400">Base per 100g</span>
         </div>
-        <div class="flex gap-2 items-center">
-          <input type="number" id="selectedWeight" placeholder="Grams" value="100" class="w-24 bg-brand-card border border-brand-border rounded p-2 text-white text-xs">
-          <span class="text-xs text-gray-400">grams</span>
-          <button onclick="addItemToCurrentMeal()" class="ml-auto bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-bold">
+
+        <div class="grid grid-cols-4 gap-2 text-xs">
+          <div>
+            <label class="text-[10px] text-gray-400 block mb-0.5">Portion (g)</label>
+            <input type="number" id="selectedWeight" value="100" oninput="recalculateSelectedPortion()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] text-gray-400 block mb-0.5">Carbs/100g</label>
+            <input type="number" step="0.1" id="selectedC100" oninput="recalculateSelectedPortion()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] text-gray-400 block mb-0.5">Protein/100g</label>
+            <input type="number" step="0.1" id="selectedP100" oninput="recalculateSelectedPortion()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] text-gray-400 block mb-0.5">Fats/100g</label>
+            <input type="number" step="0.1" id="selectedF100" oninput="recalculateSelectedPortion()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white outline-none">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs border-t border-brand-border pt-2">
+          <div class="text-[11px] text-gray-300">
+            Calculated: <b id="calcPortionKcal" class="text-brand-red">0</b> kcal | C:<b id="calcPortionC">0</b>g P:<b id="calcPortionP">0</b>g F:<b id="calcPortionF">0</b>g
+          </div>
+          <button onclick="addItemToCurrentMeal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded font-bold">
             + Add to Meal
           </button>
         </div>
@@ -331,6 +353,8 @@
       { name: "Whole Egg (Raw/Boiled)", c100: 0.7, p100: 12.6, f100: 9.5 },
       { name: "Egg White", c100: 0.7, p100: 10.9, f100: 0.2 },
       { name: "Egg Yolk", c100: 3.6, p100: 15.9, f100: 26.5 },
+      { name: "Whole Wheat Bread / Ψωμί Ολικής", c100: 41, p100: 9.5, f100: 2 },
+      { name: "ΧΡΥΣΟΣ ΜΥΛΟΣ ΨΩΜΙ ΟΛΙΚΗΣ ΑΛΕΣΗΣ", c100: 41, p100: 9.5, f100: 2 },
       { name: "Chicken Breast (Cooked)", c100: 0, p100: 31, f100: 3.6 },
       { name: "Chicken Thigh (Cooked)", c100: 0, p100: 24, f100: 9 },
       { name: "White Rice (Cooked)", c100: 28, p100: 2.7, f100: 0.3 },
@@ -382,7 +406,7 @@
       localStorage.setItem('myMeals', JSON.stringify(meals));
     }
 
-    // --- FAST HYBRID FOOD SEARCH (LOCAL LIBRARY + API BACKUP) ---
+    // --- HYBRID FOOD SEARCH ---
     async function searchFoodAPI() {
       const query = document.getElementById('foodSearchInput').value.trim();
       if (!query) return;
@@ -391,15 +415,12 @@
       resultsContainer.classList.remove('hidden');
       resultsContainer.innerHTML = `<p class="text-xs text-amber-400">Searching database...</p>`;
 
-      // 1. Check Local Whole Foods Library First
       const localMatches = COMMON_FOODS.filter(f => f.name.toLowerCase().includes(query.toLowerCase()));
-
       if (localMatches.length > 0) {
         renderSearchResults(localMatches);
         return;
       }
 
-      // 2. Barcode or External API Query
       try {
         if (/^\d+$/.test(query)) {
           const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${query}.json`);
@@ -431,11 +452,7 @@
         console.warn("API query skipped, falling back");
       }
 
-      // 3. Fallback: Generic Match Prompt
-      renderSearchResults([{
-        name: query.toUpperCase(),
-        c100: 0, p100: 0, f100: 0
-      }]);
+      renderSearchResults([{ name: query.toUpperCase(), c100: 0, p100: 0, f100: 0 }]);
     }
 
     function renderSearchResults(items) {
@@ -451,16 +468,50 @@
     function selectFoodItem(item) {
       activeSelectedFood = item;
       document.getElementById('selectedFoodName').innerText = item.name;
+      document.getElementById('selectedC100').value = item.c100 || 0;
+      document.getElementById('selectedP100').value = item.p100 || 0;
+      document.getElementById('selectedF100').value = item.f100 || 0;
+
+      const badge = document.getElementById('macroNoticeBadge');
+      if (!item.c100 && !item.p100 && !item.f100) {
+        badge.innerText = "⚠️ Missing macros in API - please enter per 100g:";
+        badge.className = "text-red-400 font-semibold";
+      } else {
+        badge.innerText = "Base per 100g (Editable)";
+        badge.className = "text-gray-400";
+      }
+
       document.getElementById('portionSection').classList.remove('hidden');
+      recalculateSelectedPortion();
+    }
+
+    function recalculateSelectedPortion() {
+      const grams = parseFloat(document.getElementById('selectedWeight').value) || 0;
+      const c100 = parseFloat(document.getElementById('selectedC100').value) || 0;
+      const p100 = parseFloat(document.getElementById('selectedP100').value) || 0;
+      const f100 = parseFloat(document.getElementById('selectedF100').value) || 0;
+
+      const carbs = Math.round((grams * c100) / 100);
+      const protein = Math.round((grams * p100) / 100);
+      const fats = Math.round((grams * f100) / 100);
+      const kcal = Math.round((carbs * 4) + (protein * 4) + (fats * 9));
+
+      document.getElementById('calcPortionKcal').innerText = kcal;
+      document.getElementById('calcPortionC').innerText = carbs;
+      document.getElementById('calcPortionP').innerText = protein;
+      document.getElementById('calcPortionF').innerText = fats;
     }
 
     function addItemToCurrentMeal() {
       if (!activeSelectedFood) return;
       const grams = parseFloat(document.getElementById('selectedWeight').value) || 100;
+      const c100 = parseFloat(document.getElementById('selectedC100').value) || 0;
+      const p100 = parseFloat(document.getElementById('selectedP100').value) || 0;
+      const f100 = parseFloat(document.getElementById('selectedF100').value) || 0;
       
-      const carbs = Math.round((grams * activeSelectedFood.c100) / 100);
-      const protein = Math.round((grams * activeSelectedFood.p100) / 100);
-      const fats = Math.round((grams * activeSelectedFood.f100) / 100);
+      const carbs = Math.round((grams * c100) / 100);
+      const protein = Math.round((grams * p100) / 100);
+      const fats = Math.round((grams * f100) / 100);
       const kcal = Math.round((carbs * 4) + (protein * 4) + (fats * 9));
 
       currentStagedItems.push({ name: activeSelectedFood.name, grams, carbs, protein, fats, kcal });
