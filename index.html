@@ -22,6 +22,7 @@
 </head>
 <body class="bg-brand-dark text-gray-100 min-h-screen font-sans p-4 md:p-8">
 
+  <!-- HEADER -->
   <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center pb-6 border-b border-brand-border gap-4">
     <div>
       <h1 class="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
@@ -29,14 +30,20 @@
       </h1>
       <p class="text-gray-400 text-sm">Targeted Split: Upper 1 | Lower 1 | Upper 2 | Lower 2</p>
     </div>
-    <div id="connectionStatus" class="text-xs px-3 py-1.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
-      ⚡ Supabase: Connecting...
+    <div class="flex items-center gap-3">
+      <div id="connectionStatus" class="text-xs px-3 py-1.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
+        ⚡ Supabase: Connecting...
+      </div>
+      <button onclick="openCustomizer()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border rounded-lg text-sm font-semibold transition">
+        ⚙️ Customize Plan
+      </button>
     </div>
   </header>
 
+  <!-- MAIN CONTAINER -->
   <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
 
-    <!-- WORKOUT TRACKER -->
+    <!-- WORKOUT TRACKER SECTION -->
     <section class="lg:col-span-7 space-y-6">
       <div class="bg-brand-card border border-brand-border rounded-xl p-5 shadow-lg">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -147,6 +154,46 @@
     </section>
 
   </main>
+
+  <!-- CUSTOMIZATION MODAL -->
+  <div id="customizerModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+    <div class="bg-brand-card border border-brand-border rounded-xl p-6 max-w-lg w-full space-y-4">
+      <div class="flex justify-between items-center border-b border-brand-border pb-3">
+        <h3 class="text-lg font-bold text-white">⚙️ Add New Exercise</h3>
+        <button onclick="closeCustomizer()" class="text-gray-400 hover:text-white">✕</button>
+      </div>
+
+      <form onsubmit="handleAddExercise(event)" class="space-y-3">
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Target Routine</label>
+          <select id="modalRoutineSelect" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+            <option value="upper1">Monday - UPPER BODY 1</option>
+            <option value="lower1">Tuesday - LOWER BODY 1</option>
+            <option value="upper2">Thursday - UPPER BODY 2</option>
+            <option value="lower2">Friday - LOWER BODY 2</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Exercise Name</label>
+          <input type="text" id="modalExName" required placeholder="e.g. INCLINE DUMBBELL PRESS" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Sets</label>
+            <input type="number" id="modalExSets" required placeholder="4" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Target Reps</label>
+            <input type="number" id="modalExReps" required placeholder="10" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white outline-none">
+          </div>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeCustomizer()" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 py-2 rounded font-semibold">Cancel</button>
+          <button type="submit" class="flex-1 bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded font-semibold">Add Exercise</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script>
     // --- SUPABASE CONFIGURATION ---
@@ -417,6 +464,36 @@
       `).join('');
     }
 
+    // --- MODAL CONTROLS ---
+    function openCustomizer() {
+      document.getElementById('customizerModal').classList.remove('hidden');
+      document.getElementById('customizerModal').classList.add('flex');
+    }
+
+    function closeCustomizer() {
+      document.getElementById('customizerModal').classList.add('hidden');
+      document.getElementById('customizerModal').classList.remove('flex');
+    }
+
+    function handleAddExercise(e) {
+      e.preventDefault();
+      const routineKey = document.getElementById('modalRoutineSelect').value;
+      const name = document.getElementById('modalExName').value.toUpperCase();
+      const sets = parseInt(document.getElementById('modalExSets').value);
+      const reps = parseInt(document.getElementById('modalExReps').value);
+
+      routines[routineKey].exercises.push({ name, sets, reps });
+
+      if (routineKey === currentRoutineKey) {
+        renderExerciseCard();
+      }
+
+      closeCustomizer();
+      e.target.reset();
+      alert(`Added ${name} to ${routines[routineKey].title}!`);
+    }
+
+    // --- HELPER FUNCTIONS ---
     function formatMS(sec) {
       const m = Math.floor(sec / 60).toString().padStart(2, '0');
       const s = (sec % 60).toString().padStart(2, '0');
