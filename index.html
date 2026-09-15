@@ -236,7 +236,7 @@
       </form>
 
       <div class="border-t border-brand-border pt-3">
-        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Existing Exercises (Click Edit to change)</h4>
+        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Existing Exercises</h4>
         <div id="modalExerciseList" class="space-y-2 text-xs"></div>
       </div>
     </div>
@@ -274,7 +274,7 @@
       <div class="border-t border-brand-border pt-3">
         <label class="text-xs text-gray-400 block mb-1">Search Food DB or Barcode</label>
         <div class="flex gap-2">
-          <input type="text" id="foodSearchInput" placeholder="e.g. Cooked Chicken Thigh OR 737628001143" class="flex-1 bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
+          <input type="text" id="foodSearchInput" placeholder="e.g. Whole Egg, Cooked Chicken Thigh, Oats" class="flex-1 bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
           <button onclick="searchFoodAPI()" class="bg-brand-red hover:bg-brand-darkRed text-white px-3 py-2 rounded text-xs font-bold">Search</button>
         </div>
       </div>
@@ -317,7 +317,7 @@
   </div>
 
   <script>
-    // --- SUPABASE CREDENTIALS & INITIALIZATION ---
+    // --- SUPABASE ENGINE ---
     const SUPABASE_URL = 'https://jikqrfseacrrekpolbsa.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imppa3FyZnNlYWNycmVrcG9sYnNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTMzMjMsImV4cCI6MjA5NTYyOTMyM30.Ca-4IFwgmQG2ePn0Sg6hb2txskW7qtAqRWSoPz99vXc';
 
@@ -325,6 +325,30 @@
     if (window.supabase) {
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
+
+    // --- BUILT-IN RELIABLE WHOLE FOODS LIBRARY (Per 100g) ---
+    const COMMON_FOODS = [
+      { name: "Whole Egg (Raw/Boiled)", c100: 0.7, p100: 12.6, f100: 9.5 },
+      { name: "Egg White", c100: 0.7, p100: 10.9, f100: 0.2 },
+      { name: "Egg Yolk", c100: 3.6, p100: 15.9, f100: 26.5 },
+      { name: "Chicken Breast (Cooked)", c100: 0, p100: 31, f100: 3.6 },
+      { name: "Chicken Thigh (Cooked)", c100: 0, p100: 24, f100: 9 },
+      { name: "White Rice (Cooked)", c100: 28, p100: 2.7, f100: 0.3 },
+      { name: "Brown Rice (Cooked)", c100: 23, p100: 2.6, f100: 0.9 },
+      { name: "Oats / Oatmeal (Dry)", c100: 66, p100: 16.9, f100: 6.9 },
+      { name: "Turkey Breast Slices", c100: 1, p100: 22, f100: 1.5 },
+      { name: "Lean Beef / Steak (Cooked)", c100: 0, p100: 26, f100: 8 },
+      { name: "Baked Potato", c100: 21, p100: 2.3, f100: 0.1 },
+      { name: "Whey Protein Powder", c100: 6, p100: 80, f100: 3 },
+      { name: "Light Cheese", c100: 2, p100: 25, f100: 10 },
+      { name: "Greek Yogurt (Non-Fat)", c100: 3.6, p100: 10, f100: 0.4 },
+      { name: "Salmon (Cooked)", c100: 0, p100: 25, f100: 12 },
+      { name: "Tuna (Canned in Water)", c100: 0, p100: 26, f100: 1 },
+      { name: "Banana", c100: 23, p100: 1.1, f100: 0.3 },
+      { name: "Peanut Butter", c100: 20, p100: 25, f100: 50 },
+      { name: "Almonds", c100: 21, p100: 21, f100: 49 },
+      { name: "Olive Oil", c100: 0, p100: 0, f100: 100 }
+    ];
 
     // --- STATE MANAGEMENT ---
     let routines = JSON.parse(localStorage.getItem('myRoutines')) || {
@@ -358,77 +382,93 @@
       localStorage.setItem('myMeals', JSON.stringify(meals));
     }
 
-    // --- SUPABASE ENGINE ---
-    async function fetchWeightLogs() {
-      const statusBadge = document.getElementById('connectionStatus');
-      if (!supabaseClient) {
-        statusBadge.className = "text-xs px-3 py-1.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 font-semibold";
-        statusBadge.innerText = "⚡ Supabase: SDK Missing";
+    // --- FAST HYBRID FOOD SEARCH (LOCAL LIBRARY + API BACKUP) ---
+    async function searchFoodAPI() {
+      const query = document.getElementById('foodSearchInput').value.trim();
+      if (!query) return;
+
+      const resultsContainer = document.getElementById('searchResults');
+      resultsContainer.classList.remove('hidden');
+      resultsContainer.innerHTML = `<p class="text-xs text-amber-400">Searching database...</p>`;
+
+      // 1. Check Local Whole Foods Library First
+      const localMatches = COMMON_FOODS.filter(f => f.name.toLowerCase().includes(query.toLowerCase()));
+
+      if (localMatches.length > 0) {
+        renderSearchResults(localMatches);
         return;
       }
 
-      const { data, error } = await supabaseClient.from('weight_logs').select('*').order('log_date', { ascending: false });
-
-      if (error) {
-        statusBadge.className = "text-xs px-3 py-1.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 font-semibold";
-        statusBadge.innerText = "⚡ Supabase: Connection Failed";
-        console.error("Supabase Error:", error);
-        return;
+      // 2. Barcode or External API Query
+      try {
+        if (/^\d+$/.test(query)) {
+          const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${query}.json`);
+          const data = await res.json();
+          if (data.status === 1) {
+            renderSearchResults([{
+              name: data.product.product_name || "Barcode Product",
+              c100: data.product.nutriments['carbohydrates_100g'] || 0,
+              p100: data.product.nutriments['proteins_100g'] || 0,
+              f100: data.product.nutriments['fat_100g'] || 0
+            }]);
+            return;
+          }
+        } else {
+          const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`);
+          const data = await res.json();
+          if (data.products && data.products.length > 0) {
+            const formatted = data.products.slice(0, 5).map(p => ({
+              name: p.product_name || "Unknown Food",
+              c100: p.nutriments['carbohydrates_100g'] || 0,
+              p100: p.nutriments['proteins_100g'] || 0,
+              f100: p.nutriments['fat_100g'] || 0
+            }));
+            renderSearchResults(formatted);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("API query skipped, falling back");
       }
 
-      statusBadge.className = "text-xs px-3 py-1.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold";
-      statusBadge.innerText = "⚡ Supabase: Connected";
-
-      document.getElementById('weightTableBody').innerHTML = (data || []).map(log => `
-        <tr class="hover:bg-brand-dark/50">
-          <td class="p-2">${log.log_date}</td>
-          <td class="p-2 font-bold text-white">${log.weight_kg} kg</td>
-          <td class="p-2 text-right"><button onclick="deleteWeightLog('${log.id}')" class="text-xs text-red-500 font-bold">✕ Delete</button></td>
-        </tr>
-      `).join('');
+      // 3. Fallback: Generic Match Prompt
+      renderSearchResults([{
+        name: query.toUpperCase(),
+        c100: 0, p100: 0, f100: 0
+      }]);
     }
 
-    async function deleteWeightLog(id) {
-      if (!supabaseClient) return;
-      await supabaseClient.from('weight_logs').delete().eq('id', id);
-      fetchWeightLogs();
-    }
-
-    async function fetchWorkoutLogs() {
-      if (!supabaseClient) return;
-      const routineName = routines[currentRoutineKey].title;
-      const { data } = await supabaseClient.from('workout_logs').select('*').eq('workout_day', routineName).order('created_at', { ascending: false }).limit(10);
-      const container = document.getElementById('exerciseLogHistory');
-      if (!data || data.length === 0) {
-        container.innerHTML = `<p class="text-gray-500 italic text-xs">No entries saved yet for this session.</p>`;
-        return;
-      }
-      container.innerHTML = data.map(item => `
-        <div class="flex justify-between items-center bg-brand-dark p-2 border border-brand-border rounded">
-          <div>
-            <span class="font-bold text-white block text-xs">${item.exercise_name} (Set ${item.set_number})</span>
-            <span class="text-xs text-brand-red">${item.weight_kg}kg x ${item.reps_done} reps</span>
-          </div>
-          <button onclick="deleteWorkoutLog('${item.id}')" class="text-xs text-red-500 font-bold">✕ Delete</button>
+    function renderSearchResults(items) {
+      const container = document.getElementById('searchResults');
+      container.innerHTML = items.map(item => `
+        <div onclick='selectFoodItem(${JSON.stringify(item)})' class="p-1.5 hover:bg-brand-card rounded cursor-pointer text-xs flex justify-between border-b border-brand-border/50">
+          <span class="font-bold text-white">${item.name}</span>
+          <span class="text-gray-400 text-[10px]">C:${Math.round(item.c100)}g | P:${Math.round(item.p100)}g | F:${Math.round(item.f100)}g</span>
         </div>
       `).join('');
     }
 
-    async function deleteWorkoutLog(id) {
-      if (!supabaseClient) return;
-      await supabaseClient.from('workout_logs').delete().eq('id', id);
-      fetchWorkoutLogs();
+    function selectFoodItem(item) {
+      activeSelectedFood = item;
+      document.getElementById('selectedFoodName').innerText = item.name;
+      document.getElementById('portionSection').classList.remove('hidden');
     }
 
-    async function fetchLastExercisePerformance() {
-      if (!supabaseClient) return;
-      const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
-      if (!currentEx) return;
-      const { data } = await supabaseClient.from('workout_logs').select('weight_kg, reps_done').eq('exercise_name', currentEx.name).order('created_at', { ascending: false }).limit(1);
-      document.getElementById('lastPerfLog').innerText = (data && data.length) ? `${data[0].weight_kg}kg x ${data[0].reps_done}` : "No history";
+    function addItemToCurrentMeal() {
+      if (!activeSelectedFood) return;
+      const grams = parseFloat(document.getElementById('selectedWeight').value) || 100;
+      
+      const carbs = Math.round((grams * activeSelectedFood.c100) / 100);
+      const protein = Math.round((grams * activeSelectedFood.p100) / 100);
+      const fats = Math.round((grams * activeSelectedFood.f100) / 100);
+      const kcal = Math.round((carbs * 4) + (protein * 4) + (fats * 9));
+
+      currentStagedItems.push({ name: activeSelectedFood.name, grams, carbs, protein, fats, kcal });
+      renderBasket();
+      document.getElementById('portionSection').classList.add('hidden');
+      document.getElementById('searchResults').classList.add('hidden');
     }
 
-    // --- MEALS WITH INDIVIDUAL MACROS ---
     function renderBasket() {
       const container = document.getElementById('mealBasket');
       let tKcal = 0, tC = 0, tP = 0, tF = 0;
@@ -457,6 +497,25 @@
       document.getElementById('basketCarbs').innerText = tC;
       document.getElementById('basketProtein').innerText = tP;
       document.getElementById('basketFats').innerText = tF;
+    }
+
+    function removeStagedItem(idx) {
+      currentStagedItems.splice(idx, 1);
+      renderBasket();
+    }
+
+    function saveStagedMeal() {
+      if (currentStagedItems.length === 0) return alert("Add at least one food item.");
+      const dayType = document.getElementById('modalDayType').value;
+      const category = document.getElementById('modalMealCategory').value;
+
+      let tKcal = 0, tC = 0, tP = 0, tF = 0;
+      currentStagedItems.forEach(i => { tKcal += i.kcal; tC += i.carbs; tP += i.protein; tF += i.fats; });
+
+      meals[dayType].push({ category, items: currentStagedItems, kcal: tKcal, carbs: tC, protein: tP, fats: tF });
+      saveState();
+      renderMeals();
+      closeMealModal();
     }
 
     function renderMeals() {
@@ -492,99 +551,6 @@
       `).join('');
     }
 
-    // --- API SEARCH & STAGING ---
-    async function searchFoodAPI() {
-      const query = document.getElementById('foodSearchInput').value.trim();
-      if (!query) return;
-
-      const resultsContainer = document.getElementById('searchResults');
-      resultsContainer.classList.remove('hidden');
-      resultsContainer.innerHTML = `<p class="text-xs text-amber-400">Searching global database...</p>`;
-
-      try {
-        if (/^\d+$/.test(query)) {
-          const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${query}.json`);
-          const data = await res.json();
-          if (data.status === 1) {
-            renderSearchResults([{
-              name: data.product.product_name || "Barcode Product",
-              c100: data.product.nutriments['carbohydrates_100g'] || 0,
-              p100: data.product.nutriments['proteins_100g'] || 0,
-              f100: data.product.nutriments['fat_100g'] || 0
-            }]);
-          } else {
-            resultsContainer.innerHTML = `<p class="text-xs text-red-500">Barcode not found.</p>`;
-          }
-        } else {
-          const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`);
-          const data = await res.json();
-          if (data.products && data.products.length > 0) {
-            const formatted = data.products.slice(0, 5).map(p => ({
-              name: p.product_name || "Unknown Food",
-              c100: p.nutriments['carbohydrates_100g'] || 0,
-              p100: p.nutriments['proteins_100g'] || 0,
-              f100: p.nutriments['fat_100g'] || 0
-            }));
-            renderSearchResults(formatted);
-          } else {
-            resultsContainer.innerHTML = `<p class="text-xs text-red-500">No matching foods found.</p>`;
-          }
-        }
-      } catch (err) {
-        resultsContainer.innerHTML = `<p class="text-xs text-red-500">API fetch failed.</p>`;
-      }
-    }
-
-    function renderSearchResults(items) {
-      const container = document.getElementById('searchResults');
-      container.innerHTML = items.map(item => `
-        <div onclick='selectFoodItem(${JSON.stringify(item)})' class="p-1.5 hover:bg-brand-card rounded cursor-pointer text-xs flex justify-between">
-          <span class="font-bold text-white">${item.name}</span>
-          <span class="text-gray-400 text-[10px]">C:${Math.round(item.c100)}g | P:${Math.round(item.p100)}g | F:${Math.round(item.f100)}g</span>
-        </div>
-      `).join('');
-    }
-
-    function selectFoodItem(item) {
-      activeSelectedFood = item;
-      document.getElementById('selectedFoodName').innerText = item.name;
-      document.getElementById('portionSection').classList.remove('hidden');
-    }
-
-    function addItemToCurrentMeal() {
-      if (!activeSelectedFood) return;
-      const grams = parseFloat(document.getElementById('selectedWeight').value) || 100;
-      
-      const carbs = Math.round((grams * activeSelectedFood.c100) / 100);
-      const protein = Math.round((grams * activeSelectedFood.p100) / 100);
-      const fats = Math.round((grams * activeSelectedFood.f100) / 100);
-      const kcal = Math.round((carbs * 4) + (protein * 4) + (fats * 9));
-
-      currentStagedItems.push({ name: activeSelectedFood.name, grams, carbs, protein, fats, kcal });
-      renderBasket();
-      document.getElementById('portionSection').classList.add('hidden');
-      document.getElementById('searchResults').classList.add('hidden');
-    }
-
-    function removeStagedItem(idx) {
-      currentStagedItems.splice(idx, 1);
-      renderBasket();
-    }
-
-    function saveStagedMeal() {
-      if (currentStagedItems.length === 0) return alert("Add at least one food item.");
-      const dayType = document.getElementById('modalDayType').value;
-      const category = document.getElementById('modalMealCategory').value;
-
-      let tKcal = 0, tC = 0, tP = 0, tF = 0;
-      currentStagedItems.forEach(i => { tKcal += i.kcal; tC += i.carbs; tP += i.protein; tF += i.fats; });
-
-      meals[dayType].push({ category, items: currentStagedItems, kcal: tKcal, carbs: tC, protein: tP, fats: tF });
-      saveState();
-      renderMeals();
-      closeMealModal();
-    }
-
     function openMealModal() {
       currentStagedItems = [];
       renderBasket();
@@ -604,7 +570,73 @@
       renderMeals();
     }
 
-    // --- ROUTINE & EXERCISE CUSTOMIZATION ---
+    // --- SUPABASE CONNECTIVITY & WORKOUT ENGINE ---
+    async function fetchWeightLogs() {
+      const statusBadge = document.getElementById('connectionStatus');
+      if (!supabaseClient) {
+        statusBadge.className = "text-xs px-3 py-1.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold";
+        statusBadge.innerText = "⚡ Local Storage Mode";
+        return;
+      }
+
+      const { data, error } = await supabaseClient.from('weight_logs').select('*').order('log_date', { ascending: false });
+
+      if (error) {
+        statusBadge.className = "text-xs px-3 py-1.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 font-semibold";
+        statusBadge.innerText = "⚡ Supabase: Connection Failed";
+        return;
+      }
+
+      statusBadge.className = "text-xs px-3 py-1.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold";
+      statusBadge.innerText = "⚡ Supabase: Connected";
+
+      document.getElementById('weightTableBody').innerHTML = (data || []).map(log => `
+        <tr class="hover:bg-brand-dark/50">
+          <td class="p-2">${log.log_date}</td>
+          <td class="p-2 font-bold text-white">${log.weight_kg} kg</td>
+          <td class="p-2 text-right"><button onclick="deleteWeightLog('${log.id}')" class="text-xs text-red-500 font-bold">✕ Delete</button></td>
+        </tr>
+      `).join('');
+    }
+
+    async function deleteWeightLog(id) {
+      if (supabaseClient) await supabaseClient.from('weight_logs').delete().eq('id', id);
+      fetchWeightLogs();
+    }
+
+    async function fetchWorkoutLogs() {
+      if (!supabaseClient) return;
+      const routineName = routines[currentRoutineKey].title;
+      const { data } = await supabaseClient.from('workout_logs').select('*').eq('workout_day', routineName).order('created_at', { ascending: false }).limit(10);
+      const container = document.getElementById('exerciseLogHistory');
+      if (!data || data.length === 0) {
+        container.innerHTML = `<p class="text-gray-500 italic text-xs">No entries saved yet for this session.</p>`;
+        return;
+      }
+      container.innerHTML = data.map(item => `
+        <div class="flex justify-between items-center bg-brand-dark p-2 border border-brand-border rounded">
+          <div>
+            <span class="font-bold text-white block text-xs">${item.exercise_name} (Set ${item.set_number})</span>
+            <span class="text-xs text-brand-red">${item.weight_kg}kg x ${item.reps_done} reps</span>
+          </div>
+          <button onclick="deleteWorkoutLog('${item.id}')" class="text-xs text-red-500 font-bold">✕ Delete</button>
+        </div>
+      `).join('');
+    }
+
+    async function deleteWorkoutLog(id) {
+      if (supabaseClient) await supabaseClient.from('workout_logs').delete().eq('id', id);
+      fetchWorkoutLogs();
+    }
+
+    async function fetchLastExercisePerformance() {
+      if (!supabaseClient) return;
+      const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
+      if (!currentEx) return;
+      const { data } = await supabaseClient.from('workout_logs').select('weight_kg, reps_done').eq('exercise_name', currentEx.name).order('created_at', { ascending: false }).limit(1);
+      document.getElementById('lastPerfLog').innerText = (data && data.length) ? `${data[0].weight_kg}kg x ${data[0].reps_done}` : "No history";
+    }
+
     function openCustomizer() {
       document.getElementById('customizerModal').classList.remove('hidden');
       document.getElementById('customizerModal').classList.add('flex');
@@ -666,7 +698,6 @@
       saveState(); renderModalExerciseList(key); renderExerciseCard();
     }
 
-    // --- SESSION HISTORY REVIEW ---
     function openHistoryModal() {
       document.getElementById('historyModal').classList.remove('hidden');
       document.getElementById('historyModal').classList.add('flex');
@@ -708,7 +739,6 @@
       `).join('');
     }
 
-    // --- TIMER & ROUTINE ENGINE ---
     function changeRoutine(key) {
       currentRoutineKey = key; currentExerciseIdx = 0; currentSetIdx = 1;
       renderExerciseCard(); fetchWorkoutLogs();
