@@ -430,7 +430,10 @@
     let isResting = false;
 
     let overallTimerInterval, setTimerInterval, restTimerInterval;
-    let overallSeconds = 0, setSeconds = 0, restSeconds = 60;
+    let overallStartTime = 0, setStartTime = 0, restTargetTime = 0;
+    let setSeconds = 0, restSeconds = 0, overallSeconds = 0;
+    let wakeLock = null;
+    let silentAudio = null;
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('weightDate').valueAsDate = new Date();
@@ -438,6 +441,9 @@
       renderMeals();
       fetchWeightLogs();
       fetchWorkoutLogs();
+      
+      // Auto-recalculate elapsed time when unlocking screen or switching tabs back
+      document.addEventListener('visibilitychange', handleVisibilityChange);
     });
 
     function saveState() {
@@ -453,9 +459,64 @@
       renderExerciseCard();
     }
 
+    // --- BACKGROUND BACKGROUND KEEP-ALIVE & WAKE LOCK ---
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (err) {
+        console.warn("Wake lock unavailable:", err);
+      }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) {
+        wakeLock.release();
+        wakeLock = null;
+      }
+    }
+
+    function playSilentAudioLoop() {
+      if (!silentAudio) {
+        // Base64 1-second silent WAV loop to keep audio context awake during screen lock
+        silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAARKwAARKwAAAEACABkYXRhAgAAAAEA');
+        silentAudio.loop = true;
+      }
+      silentAudio.play().catch(() => {});
+    }
+
+    function stopSilentAudioLoop() {
+      if (silentAudio) {
+        silentAudio.pause();
+      }
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible' && isSessionActive) {
+        // Recalculate timers instantly on screen unlock
+        const now = Date.now();
+        overallSeconds = Math.floor((now - overallStartTime) / 1000);
+        document.getElementById('overallTimer').innerText = formatHMS(overallSeconds);
+
+        if (isResting) {
+          restSeconds = Math.max(0, Math.ceil((restTargetTime - now) / 1000));
+          document.getElementById('exerciseTimer').innerText = formatMS(restSeconds);
+          if (restSeconds <= 0) {
+            clearInterval(restTimerInterval);
+            triggerRestOverAlert();
+            startSetTimer();
+          }
+        } else {
+          setSeconds = Math.floor((now - setStartTime) / 1000);
+          document.getElementById('exerciseTimer').innerText = formatMS(setSeconds);
+        }
+      }
+    }
+
     // --- SOUND & VIBRATION NOTIFICATION ---
     function triggerRestOverAlert() {
-      if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+      if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
 
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -472,18 +533,20 @@
             osc.stop(audioCtx.currentTime + duration);
           }, delay);
         };
-        playBeep(880, 0.2, 0);
-        playBeep(880, 0.4, 250);
+        playBeep(880, 0.25, 0);
+        playBeep(880, 0.45, 300);
       } catch (e) {
         console.warn("Audio Context disabled");
       }
     }
 
-    // --- TIMERS & DYNAMIC REST ENGINE ---
+    // --- TIMESTAMP-BASED ACCURATE TIMERS ---
     function startSetTimer() {
       clearInterval(setTimerInterval);
       clearInterval(restTimerInterval);
       isResting = false;
+      
+      setStartTime = Date.now();
       setSeconds = 0;
 
       document.getElementById('timerLabel').innerText = `Set ${currentSetIdx} Timer`;
@@ -492,7 +555,7 @@
       document.getElementById('exerciseTimer').className = "font-mono text-base sm:text-lg font-semibold text-brand-red";
 
       setTimerInterval = setInterval(() => {
-        setSeconds++;
+        setSeconds = Math.floor((Date.now() - setStartTime) / 1000);
         document.getElementById('exerciseTimer').innerText = formatMS(setSeconds);
       }, 1000);
     }
@@ -505,8 +568,9 @@
       const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
       const targetSetCount = currentEx ? currentEx.sets : 4;
       
-      // 4 Sets = 90s (1:30), 3 Sets = 60s (1:00)
-      restSeconds = (targetSetCount >= 4) ? 90 : 60;
+      const restDuration = (targetSetCount >= 4) ? 90 : 60;
+      restTargetTime = Date.now() + (restDuration * 1000);
+      restSeconds = restDuration;
 
       document.getElementById('timerLabel').innerText = "Rest Time Remaining";
       document.getElementById('timerLabel').className = "text-[10px] sm:text-xs text-amber-400 block font-bold";
@@ -514,7 +578,7 @@
       document.getElementById('exerciseTimer').className = "font-mono text-base sm:text-lg font-semibold text-amber-400";
 
       restTimerInterval = setInterval(() => {
-        restSeconds--;
+        restSeconds = Math.max(0, Math.ceil((restTargetTime - Date.now()) / 1000));
         document.getElementById('exerciseTimer').innerText = formatMS(restSeconds);
 
         if (restSeconds <= 0) {
@@ -869,8 +933,15 @@
         document.getElementById('sessionBtn').innerText = '⏹ STOP SESSION';
         document.getElementById('saveSetBtn').disabled = false;
         
+        requestWakeLock();
+        playSilentAudioLoop();
+
+        overallStartTime = Date.now();
         overallSeconds = 0;
-        overallTimerInterval = setInterval(() => { overallSeconds++; document.getElementById('overallTimer').innerText = formatHMS(overallSeconds); }, 1000);
+        overallTimerInterval = setInterval(() => {
+          overallSeconds = Math.floor((Date.now() - overallStartTime) / 1000);
+          document.getElementById('overallTimer').innerText = formatHMS(overallSeconds);
+        }, 1000);
         
         startSetTimer();
       } else {
@@ -878,6 +949,10 @@
         clearInterval(overallTimerInterval);
         clearInterval(setTimerInterval);
         clearInterval(restTimerInterval);
+        
+        releaseWakeLock();
+        stopSilentAudioLoop();
+
         document.getElementById('sessionBtn').innerText = '▶ START SESSION';
         document.getElementById('saveSetBtn').disabled = true;
       }
