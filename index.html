@@ -154,7 +154,7 @@
               <option value="nontraining">Non-Training Day</option>
             </select>
             <button onclick="openMealModal()" class="text-[11px] sm:text-xs bg-brand-red hover:bg-brand-darkRed text-white px-2 py-1.5 rounded font-semibold shrink-0">
-              🔍 Add Food
+              ➕ Add Food
             </button>
           </div>
         </div>
@@ -239,11 +239,11 @@
     </div>
   </div>
 
-  <!-- MEAL SEARCH MODAL -->
+  <!-- MANUAL MEAL BUILDER MODAL -->
   <div id="mealModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
     <div class="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-6 max-w-xl w-full space-y-3 max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-brand-border pb-2">
-        <h3 class="text-base sm:text-lg font-bold text-white">🥗 Food Search & Meal Builder</h3>
+        <h3 class="text-base sm:text-lg font-bold text-white">🥗 Add Food & Auto-Calculate Calories</h3>
         <button onclick="closeMealModal()" class="text-gray-400 hover:text-white p-1 text-lg">✕</button>
       </div>
 
@@ -268,48 +268,41 @@
         </div>
       </div>
 
-      <div class="border-t border-brand-border pt-2">
-        <label class="text-[10px] text-gray-400 block mb-1">Search Food DB or Barcode</label>
-        <div class="flex gap-2">
-          <input type="text" id="foodSearchInput" placeholder="e.g. Whole Egg, Bread, Oats" class="flex-1 bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none min-w-0">
-          <button onclick="searchFoodAPI()" class="bg-brand-red hover:bg-brand-darkRed text-white px-3 py-2 rounded text-xs font-bold shrink-0">Search</button>
-        </div>
-      </div>
-
-      <div id="searchResults" class="hidden max-h-36 overflow-y-auto bg-brand-dark border border-brand-border rounded p-1.5 space-y-1"></div>
-
-      <!-- PORTION & EDITABLE MACROS SECTION -->
-      <div id="portionSection" class="hidden bg-brand-dark border border-brand-border p-2.5 rounded space-y-2">
-        <div class="flex justify-between items-center text-xs">
-          <span id="selectedFoodName" class="font-bold text-white truncate max-w-[180px]">Food Name</span>
-          <span id="macroNoticeBadge" class="text-[10px] text-gray-400">Base per 100g</span>
+      <!-- MANUAL FOOD ENTRY PANEL -->
+      <div class="bg-brand-dark border border-brand-border p-3 rounded space-y-3 mt-2">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[10px] text-gray-400 block mb-0.5">Food Name</label>
+            <input type="text" id="manualFoodName" placeholder="e.g. Whole Wheat Bread" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white text-xs outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] text-gray-400 block mb-0.5">Portion Weight (Grams)</label>
+            <input type="number" id="manualWeight" placeholder="e.g. 50" oninput="calculateManualMacros()" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white text-xs outline-none">
+          </div>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <div class="text-[10px] text-gray-400 font-semibold">Enter Macros Per 100g:</div>
+        <div class="grid grid-cols-3 gap-2">
           <div>
-            <label class="text-[9px] text-gray-400 block mb-0.5">Portion (g)</label>
-            <input type="number" id="selectedWeight" value="100" oninput="recalculateSelectedPortion()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white outline-none text-xs">
+            <label class="text-[9px] text-gray-400 block mb-0.5">Carbs / 100g</label>
+            <input type="number" step="0.1" id="manualC100" placeholder="e.g. 41" oninput="calculateManualMacros()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white text-xs outline-none">
           </div>
           <div>
-            <label class="text-[9px] text-gray-400 block mb-0.5">Carbs/100g</label>
-            <input type="number" step="0.1" id="selectedC100" oninput="recalculateSelectedPortion()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white outline-none text-xs">
+            <label class="text-[9px] text-gray-400 block mb-0.5">Protein / 100g</label>
+            <input type="number" step="0.1" id="manualP100" placeholder="e.g. 9.5" oninput="calculateManualMacros()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white text-xs outline-none">
           </div>
           <div>
-            <label class="text-[9px] text-gray-400 block mb-0.5">Protein/100g</label>
-            <input type="number" step="0.1" id="selectedP100" oninput="recalculateSelectedPortion()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white outline-none text-xs">
-          </div>
-          <div>
-            <label class="text-[9px] text-gray-400 block mb-0.5">Fats/100g</label>
-            <input type="number" step="0.1" id="selectedF100" oninput="recalculateSelectedPortion()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white outline-none text-xs">
+            <label class="text-[9px] text-gray-400 block mb-0.5">Fats / 100g</label>
+            <input type="number" step="0.1" id="manualF100" placeholder="e.g. 2" oninput="calculateManualMacros()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white text-xs outline-none">
           </div>
         </div>
 
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs border-t border-brand-border pt-2 gap-2">
-          <div class="text-[10px] text-gray-300">
-            Calculated: <b id="calcPortionKcal" class="text-brand-red">0</b> kcal | C:<b id="calcPortionC">0</b>g P:<b id="calcPortionP">0</b>g F:<b id="calcPortionF">0</b>g
+          <div class="text-[10px] sm:text-[11px] text-gray-300">
+            Portion Totals: <b id="calcPortionKcal" class="text-brand-red">0</b> kcal | C:<b id="calcPortionC">0</b>g P:<b id="calcPortionP">0</b>g F:<b id="calcPortionF">0</b>g
           </div>
-          <button onclick="addItemToCurrentMeal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded font-bold text-xs">
-            + Add to Meal
+          <button onclick="addManualItemToMeal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded font-bold text-xs">
+            + Add Food to Basket
           </button>
         </div>
       </div>
@@ -344,32 +337,6 @@
     if (window.supabase) {
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
-
-    // --- BUILT-IN RELIABLE WHOLE FOODS LIBRARY (Per 100g) ---
-    const COMMON_FOODS = [
-      { name: "Whole Egg (Raw/Boiled)", c100: 0.7, p100: 12.6, f100: 9.5 },
-      { name: "Egg White", c100: 0.7, p100: 10.9, f100: 0.2 },
-      { name: "Egg Yolk", c100: 3.6, p100: 15.9, f100: 26.5 },
-      { name: "Whole Wheat Bread / Ψωμί Ολικής", c100: 41, p100: 9.5, f100: 2 },
-      { name: "ΧΡΥΣΟΣ ΜΥΛΟΣ ΨΩΜΙ ΟΛΙΚΗΣ ΑΛΕΣΗΣ", c100: 41, p100: 9.5, f100: 2 },
-      { name: "Chicken Breast (Cooked)", c100: 0, p100: 31, f100: 3.6 },
-      { name: "Chicken Thigh (Cooked)", c100: 0, p100: 24, f100: 9 },
-      { name: "White Rice (Cooked)", c100: 28, p100: 2.7, f100: 0.3 },
-      { name: "Brown Rice (Cooked)", c100: 23, p100: 2.6, f100: 0.9 },
-      { name: "Oats / Oatmeal (Dry)", c100: 66, p100: 16.9, f100: 6.9 },
-      { name: "Turkey Breast Slices", c100: 1, p100: 22, f100: 1.5 },
-      { name: "Lean Beef / Steak (Cooked)", c100: 0, p100: 26, f100: 8 },
-      { name: "Baked Potato", c100: 21, p100: 2.3, f100: 0.1 },
-      { name: "Whey Protein Powder", c100: 6, p100: 80, f100: 3 },
-      { name: "Light Cheese", c100: 2, p100: 25, f100: 10 },
-      { name: "Greek Yogurt (Non-Fat)", c100: 3.6, p100: 10, f100: 0.4 },
-      { name: "Salmon (Cooked)", c100: 0, p100: 25, f100: 12 },
-      { name: "Tuna (Canned in Water)", c100: 0, p100: 26, f100: 1 },
-      { name: "Banana", c100: 23, p100: 1.1, f100: 0.3 },
-      { name: "Peanut Butter", c100: 20, p100: 25, f100: 50 },
-      { name: "Almonds", c100: 21, p100: 21, f100: 49 },
-      { name: "Olive Oil", c100: 0, p100: 0, f100: 100 }
-    ];
 
     const DEFAULT_ROUTINES = {
       upper1: {
@@ -429,30 +396,22 @@
       training: [
         {
           category: "Breakfast",
-          kcal: 450, carbs: 45, protein: 48, fats: 10,
+          kcal: 365, carbs: 29, protein: 49, fats: 10,
           items: [
             { name: "Egg White", grams: 150, carbs: 1, protein: 16, fats: 0, kcal: 68 },
-            { name: "Whole Egg (Raw/Boiled)", grams: 50, carbs: 0, protein: 6, fats: 5, kcal: 69 },
-            { name: "Oats / Oatmeal (Dry)", grams: 40, carbs: 26, protein: 7, fats: 3, kcal: 159 },
-            { name: "Whey Protein Powder", grams: 25, carbs: 2, protein: 20, fats: 1, kcal: 97 }
-          ]
-        },
-        {
-          category: "Pre-Workout",
-          kcal: 460, carbs: 55, protein: 42, fats: 8,
-          items: [
-            { name: "White Rice (Cooked)", grams: 180, carbs: 50, protein: 5, fats: 1, kcal: 229 },
-            { name: "Chicken Breast (Cooked)", grams: 140, carbs: 0, protein: 43, fats: 5, kcal: 217 }
+            { name: "Whole Egg", grams: 50, carbs: 0, protein: 6, fats: 5, kcal: 69 },
+            { name: "Oats", grams: 40, carbs: 26, protein: 7, fats: 3, kcal: 159 },
+            { name: "Turkey Slice", grams: 30, carbs: 2, protein: 20, fats: 2, kcal: 69 }
           ]
         }
       ],
       nontraining: [
         {
           category: "Breakfast",
-          kcal: 380, carbs: 30, protein: 45, fats: 12,
+          kcal: 250, carbs: 8, protein: 36, fats: 6,
           items: [
             { name: "Egg White", grams: 150, carbs: 1, protein: 16, fats: 0, kcal: 68 },
-            { name: "Greek Yogurt (Non-Fat)", grams: 200, carbs: 7, protein: 20, fats: 1, kcal: 113 }
+            { name: "Greek Yogurt Non-Fat", grams: 200, carbs: 7, protein: 20, fats: 6, kcal: 182 }
           ]
         }
       ]
@@ -462,7 +421,6 @@
     let routines = JSON.parse(localStorage.getItem('myRoutines')) || DEFAULT_ROUTINES;
     let meals = JSON.parse(localStorage.getItem('myMeals')) || DEFAULT_MEALS;
     let currentStagedItems = [];
-    let activeSelectedFood = null;
     let editingExerciseIndex = null;
 
     let currentRoutineKey = 'upper1';
@@ -495,7 +453,33 @@
       renderExerciseCard();
     }
 
-    // --- TIMERS & REST ENGINE ---
+    // --- SOUND & VIBRATION NOTIFICATION ---
+    function triggerRestOverAlert() {
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const playBeep = (freq, duration, delay) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+          }, delay);
+        };
+        playBeep(880, 0.2, 0);
+        playBeep(880, 0.4, 250);
+      } catch (e) {
+        console.warn("Audio Context disabled");
+      }
+    }
+
+    // --- TIMERS & DYNAMIC REST ENGINE ---
     function startSetTimer() {
       clearInterval(setTimerInterval);
       clearInterval(restTimerInterval);
@@ -517,11 +501,16 @@
       clearInterval(setTimerInterval);
       clearInterval(restTimerInterval);
       isResting = true;
-      restSeconds = 60;
+
+      const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
+      const targetSetCount = currentEx ? currentEx.sets : 4;
+      
+      // 4 Sets = 90s (1:30), 3 Sets = 60s (1:00)
+      restSeconds = (targetSetCount >= 4) ? 90 : 60;
 
       document.getElementById('timerLabel').innerText = "Rest Time Remaining";
       document.getElementById('timerLabel').className = "text-[10px] sm:text-xs text-amber-400 block font-bold";
-      document.getElementById('exerciseTimer').innerText = "01:00";
+      document.getElementById('exerciseTimer').innerText = formatMS(restSeconds);
       document.getElementById('exerciseTimer').className = "font-mono text-base sm:text-lg font-semibold text-amber-400";
 
       restTimerInterval = setInterval(() => {
@@ -530,95 +519,19 @@
 
         if (restSeconds <= 0) {
           clearInterval(restTimerInterval);
+          triggerRestOverAlert();
           startSetTimer();
         }
       }, 1000);
     }
 
-    // --- FOOD SEARCH & STAGING ---
-    async function searchFoodAPI() {
-      const query = document.getElementById('foodSearchInput').value.trim();
-      if (!query) return;
-
-      const resultsContainer = document.getElementById('searchResults');
-      resultsContainer.classList.remove('hidden');
-      resultsContainer.innerHTML = `<p class="text-xs text-amber-400">Searching database...</p>`;
-
-      const localMatches = COMMON_FOODS.filter(f => f.name.toLowerCase().includes(query.toLowerCase()));
-      if (localMatches.length > 0) {
-        renderSearchResults(localMatches);
-        return;
-      }
-
-      try {
-        if (/^\d+$/.test(query)) {
-          const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${query}.json`);
-          const data = await res.json();
-          if (data.status === 1) {
-            renderSearchResults([{
-              name: data.product.product_name || "Barcode Product",
-              c100: data.product.nutriments['carbohydrates_100g'] || 0,
-              p100: data.product.nutriments['proteins_100g'] || 0,
-              f100: data.product.nutriments['fat_100g'] || 0
-            }]);
-            return;
-          }
-        } else {
-          const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1`);
-          const data = await res.json();
-          if (data.products && data.products.length > 0) {
-            const formatted = data.products.slice(0, 5).map(p => ({
-              name: p.product_name || "Unknown Food",
-              c100: p.nutriments['carbohydrates_100g'] || 0,
-              p100: p.nutriments['proteins_100g'] || 0,
-              f100: p.nutriments['fat_100g'] || 0
-            }));
-            renderSearchResults(formatted);
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn("API query skipped, falling back");
-      }
-
-      renderSearchResults([{ name: query.toUpperCase(), c100: 0, p100: 0, f100: 0 }]);
-    }
-
-    function renderSearchResults(items) {
-      const container = document.getElementById('searchResults');
-      container.innerHTML = items.map(item => `
-        <div onclick='selectFoodItem(${JSON.stringify(item)})' class="p-1.5 hover:bg-brand-card rounded cursor-pointer text-xs flex justify-between border-b border-brand-border/50">
-          <span class="font-bold text-white truncate max-w-[180px]">${item.name}</span>
-          <span class="text-gray-400 text-[10px] shrink-0 ml-1">C:${Math.round(item.c100)} | P:${Math.round(item.p100)} | F:${Math.round(item.f100)}</span>
-        </div>
-      `).join('');
-    }
-
-    function selectFoodItem(item) {
-      activeSelectedFood = item;
-      document.getElementById('selectedFoodName').innerText = item.name;
-      document.getElementById('selectedC100').value = item.c100 || 0;
-      document.getElementById('selectedP100').value = item.p100 || 0;
-      document.getElementById('selectedF100').value = item.f100 || 0;
-
-      const badge = document.getElementById('macroNoticeBadge');
-      if (!item.c100 && !item.p100 && !item.f100) {
-        badge.innerText = "⚠️ Missing macros - enter per 100g:";
-        badge.className = "text-red-400 font-semibold text-[10px]";
-      } else {
-        badge.innerText = "Base per 100g (Editable)";
-        badge.className = "text-gray-400 text-[10px]";
-      }
-
-      document.getElementById('portionSection').classList.remove('hidden');
-      recalculateSelectedPortion();
-    }
-
-    function recalculateSelectedPortion() {
-      const grams = parseFloat(document.getElementById('selectedWeight').value) || 0;
-      const c100 = parseFloat(document.getElementById('selectedC100').value) || 0;
-      const p100 = parseFloat(document.getElementById('selectedP100').value) || 0;
-      const f100 = parseFloat(document.getElementById('selectedF100').value) || 0;
+    // --- MANUAL MACROS & AUTO-CALORIE CALCULATOR ---
+    function calculateManualMacros() {
+      const name = document.getElementById('manualFoodName').value;
+      const grams = parseFloat(document.getElementById('manualWeight').value) || 0;
+      const c100 = parseFloat(document.getElementById('manualC100').value) || 0;
+      const p100 = parseFloat(document.getElementById('manualP100').value) || 0;
+      const f100 = parseFloat(document.getElementById('manualF100').value) || 0;
 
       const carbs = Math.round((grams * c100) / 100);
       const protein = Math.round((grams * p100) / 100);
@@ -629,24 +542,26 @@
       document.getElementById('calcPortionC').innerText = carbs;
       document.getElementById('calcPortionP').innerText = protein;
       document.getElementById('calcPortionF').innerText = fats;
+
+      return { name, grams, carbs, protein, fats, kcal };
     }
 
-    function addItemToCurrentMeal() {
-      if (!activeSelectedFood) return;
-      const grams = parseFloat(document.getElementById('selectedWeight').value) || 100;
-      const c100 = parseFloat(document.getElementById('selectedC100').value) || 0;
-      const p100 = parseFloat(document.getElementById('selectedP100').value) || 0;
-      const f100 = parseFloat(document.getElementById('selectedF100').value) || 0;
-      
-      const carbs = Math.round((grams * c100) / 100);
-      const protein = Math.round((grams * p100) / 100);
-      const fats = Math.round((grams * f100) / 100);
-      const kcal = Math.round((carbs * 4) + (protein * 4) + (fats * 9));
+    function addManualItemToMeal() {
+      const data = calculateManualMacros();
+      if (!data.name || data.grams <= 0) {
+        alert("Please enter a valid food name and portion weight in grams.");
+        return;
+      }
 
-      currentStagedItems.push({ name: activeSelectedFood.name, grams, carbs, protein, fats, kcal });
+      currentStagedItems.push(data);
       renderBasket();
-      document.getElementById('portionSection').classList.add('hidden');
-      document.getElementById('searchResults').classList.add('hidden');
+
+      document.getElementById('manualFoodName').value = '';
+      document.getElementById('manualWeight').value = '';
+      document.getElementById('manualC100').value = '';
+      document.getElementById('manualP100').value = '';
+      document.getElementById('manualF100').value = '';
+      calculateManualMacros();
     }
 
     function renderBasket() {
