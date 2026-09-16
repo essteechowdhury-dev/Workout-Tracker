@@ -203,14 +203,19 @@
       </div>
 
       <div class="shrink-0 space-y-3">
-        <div>
-          <label class="text-xs text-gray-400 block mb-1">Target Routine</label>
-          <select id="modalRoutineSelect" onchange="renderModalExerciseList(this.value)" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
-            <option value="upper1">Monday - UPPER BODY 1</option>
-            <option value="lower1">Tuesday - LOWER BODY 1</option>
-            <option value="upper2">Thursday - UPPER BODY 2</option>
-            <option value="lower2">Friday - LOWER BODY 2</option>
-          </select>
+        <div class="flex justify-between items-center">
+          <div class="flex-1 pr-2">
+            <label class="text-xs text-gray-400 block mb-1">Target Routine</label>
+            <select id="modalRoutineSelect" onchange="renderModalExerciseList(this.value)" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
+              <option value="upper1">Monday - UPPER BODY 1</option>
+              <option value="lower1">Tuesday - LOWER BODY 1</option>
+              <option value="upper2">Thursday - UPPER BODY 2</option>
+              <option value="lower2">Friday - LOWER BODY 2</option>
+            </select>
+          </div>
+          <button onclick="resetDefaultWorkouts()" class="mt-4 bg-gray-800 hover:bg-gray-700 text-amber-400 border border-brand-border px-2 py-2 rounded text-[10px] font-semibold shrink-0">
+            ↺ Reset Defaults
+          </button>
         </div>
 
         <form onsubmit="handleAddExercise(event)" class="space-y-2 bg-brand-dark p-3 rounded border border-brand-border">
@@ -227,7 +232,7 @@
         </form>
       </div>
 
-      <div class="border-t border-brand-border pt-3 overflow-y-auto flex-1 max-h-60">
+      <div class="border-t border-brand-border pt-3 overflow-y-auto flex-1 max-h-72">
         <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">All Exercises in Routine</h4>
         <div id="modalExerciseList" class="space-y-2 text-xs"></div>
       </div>
@@ -366,15 +371,96 @@
       { name: "Olive Oil", c100: 0, p100: 0, f100: 100 }
     ];
 
-    // --- STATE MANAGEMENT ---
-    let routines = JSON.parse(localStorage.getItem('myRoutines')) || {
-      upper1: { title: "UPPER BODY 1", exercises: [{ name: "BENCH PRESS", sets: 4, reps: 10 }] },
-      lower1: { title: "LOWER BODY 1", exercises: [{ name: "SMITH SQUATS", sets: 4, reps: 10 }] },
-      upper2: { title: "UPPER BODY 2", exercises: [{ name: "LOW INCLINE SMITH PRESS", sets: 4, reps: 10 }] },
-      lower2: { title: "LOWER BODY 2", exercises: [{ name: "BARBELL RDL", sets: 4, reps: 10 }] }
+    const DEFAULT_ROUTINES = {
+      upper1: {
+        title: "UPPER BODY 1",
+        exercises: [
+          { name: "BENCH PRESS", sets: 4, reps: 10 },
+          { name: "HIGH INCLINE BENCH PRESS", sets: 3, reps: 10 },
+          { name: "LAT PULL DOWN", sets: 4, reps: 10 },
+          { name: "SEATED ROW", sets: 3, reps: 10 },
+          { name: "SHOULDER MACHINE PRESS", sets: 3, reps: 10 },
+          { name: "LATERAL RAISES", sets: 3, reps: 10 },
+          { name: "CABLE PUSH DOWN BAR", sets: 3, reps: 10 },
+          { name: "SINGLE ARM PREACHER CURL", sets: 3, reps: 10 }
+        ]
+      },
+      lower1: {
+        title: "LOWER BODY 1",
+        exercises: [
+          { name: "SMITH SQUATS", sets: 4, reps: 10 },
+          { name: "SINGLE LEG PRESS", sets: 3, reps: 10 },
+          { name: "LEG EXTENSION", sets: 3, reps: 10 },
+          { name: "BARBELL RDL", sets: 4, reps: 10 },
+          { name: "BULGARIAN SQUATS", sets: 3, reps: 10 },
+          { name: "HIP THURTS", sets: 3, reps: 10 },
+          { name: "SMITH CALF RAISES", sets: 3, reps: 10 }
+        ]
+      },
+      upper2: {
+        title: "UPPER BODY 2",
+        exercises: [
+          { name: "LOW INCLINE SMITH PRESS", sets: 4, reps: 10 },
+          { name: "HIGH INCLINE DUMBBELL PRESS", sets: 3, reps: 10 },
+          { name: "CABLE CROSSOVERS HIGH POSITION", sets: 3, reps: 10 },
+          { name: "CLOSE GRIP LAT PULL DOWN", sets: 4, reps: 10 },
+          { name: "T-BAR ROW", sets: 3, reps: 10 },
+          { name: "REAR DELT CABLE FLY", sets: 3, reps: 10 },
+          { name: "SINGLE ARM CABLE LATERAL RAISE", sets: 3, reps: 10 },
+          { name: "CABLE PUSH DOWN ROPE", sets: 3, reps: 10 },
+          { name: "FACE AWAY CABLE CURL", sets: 3, reps: 10 }
+        ]
+      },
+      lower2: {
+        title: "LOWER BODY 2",
+        exercises: [
+          { name: "BARBELL RDL", sets: 4, reps: 10 },
+          { name: "LEG PRESS", sets: 4, reps: 10 },
+          { name: "BULGARIAN SQUATS", sets: 3, reps: 10 },
+          { name: "LEG EXTENSION", sets: 3, reps: 10 },
+          { name: "SINGLE LEG CABLE CURL", sets: 3, reps: 10 },
+          { name: "HIP THURTS", sets: 3, reps: 10 },
+          { name: "SMITH CALF RAISES", sets: 3, reps: 10 }
+        ]
+      }
     };
 
-    let meals = JSON.parse(localStorage.getItem('myMeals')) || { training: [], nontraining: [] };
+    const DEFAULT_MEALS = {
+      training: [
+        {
+          category: "Breakfast",
+          kcal: 450, carbs: 45, protein: 48, fats: 10,
+          items: [
+            { name: "Egg White", grams: 150, carbs: 1, protein: 16, fats: 0, kcal: 68 },
+            { name: "Whole Egg (Raw/Boiled)", grams: 50, carbs: 0, protein: 6, fats: 5, kcal: 69 },
+            { name: "Oats / Oatmeal (Dry)", grams: 40, carbs: 26, protein: 7, fats: 3, kcal: 159 },
+            { name: "Whey Protein Powder", grams: 25, carbs: 2, protein: 20, fats: 1, kcal: 97 }
+          ]
+        },
+        {
+          category: "Pre-Workout",
+          kcal: 460, carbs: 55, protein: 42, fats: 8,
+          items: [
+            { name: "White Rice (Cooked)", grams: 180, carbs: 50, protein: 5, fats: 1, kcal: 229 },
+            { name: "Chicken Breast (Cooked)", grams: 140, carbs: 0, protein: 43, fats: 5, kcal: 217 }
+          ]
+        }
+      ],
+      nontraining: [
+        {
+          category: "Breakfast",
+          kcal: 380, carbs: 30, protein: 45, fats: 12,
+          items: [
+            { name: "Egg White", grams: 150, carbs: 1, protein: 16, fats: 0, kcal: 68 },
+            { name: "Greek Yogurt (Non-Fat)", grams: 200, carbs: 7, protein: 20, fats: 1, kcal: 113 }
+          ]
+        }
+      ]
+    };
+
+    // --- STATE MANAGEMENT ---
+    let routines = JSON.parse(localStorage.getItem('myRoutines')) || DEFAULT_ROUTINES;
+    let meals = JSON.parse(localStorage.getItem('myMeals')) || DEFAULT_MEALS;
     let currentStagedItems = [];
     let activeSelectedFood = null;
     let editingExerciseIndex = null;
@@ -399,6 +485,14 @@
     function saveState() {
       localStorage.setItem('myRoutines', JSON.stringify(routines));
       localStorage.setItem('myMeals', JSON.stringify(meals));
+    }
+
+    function resetDefaultWorkouts() {
+      if (!confirm("Reset exercises to default 4-day split?")) return;
+      routines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
+      saveState();
+      renderModalExerciseList(document.getElementById('modalRoutineSelect').value);
+      renderExerciseCard();
     }
 
     // --- TIMERS & REST ENGINE ---
@@ -616,6 +710,11 @@
       document.getElementById('totalProtein').innerText = `${tP}g`;
       document.getElementById('totalFats').innerText = `${tF}g`;
 
+      if (mealList.length === 0) {
+        document.getElementById('mealList').innerHTML = `<p class="text-gray-500 italic text-xs">No meals added for this day type yet.</p>`;
+        return;
+      }
+
       document.getElementById('mealList').innerHTML = mealList.map((meal, idx) => `
         <div class="bg-brand-dark p-2.5 sm:p-3 border border-brand-border rounded-lg flex flex-col gap-1.5">
           <div class="flex justify-between items-center border-b border-brand-border pb-1">
@@ -677,7 +776,7 @@
       document.getElementById('modalExSets').value = '';
       document.getElementById('modalExReps').value = '';
       document.getElementById('cancelEditBtn').classList.add('hidden');
-      document.getElementById('modalSubmitBtn').innerText = "Add Exercise to Routine";
+      document.getElementById('modalSubmitBtn').innerText = "Add Exercise";
       document.getElementById('modalSubmitBtn').className = "flex-1 bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded text-xs font-semibold";
     }
 
