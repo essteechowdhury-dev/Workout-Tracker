@@ -239,11 +239,11 @@
     </div>
   </div>
 
-  <!-- MANUAL MEAL BUILDER MODAL -->
+  <!-- MEAL BUILDER & EDIT MODAL -->
   <div id="mealModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
     <div class="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-6 max-w-xl w-full space-y-3 max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-brand-border pb-2">
-        <h3 class="text-base sm:text-lg font-bold text-white">🥗 Add Food & Auto-Calculate Calories</h3>
+        <h3 id="mealModalTitle" class="text-base sm:text-lg font-bold text-white">🥗 Add Food & Auto-Calculate Calories</h3>
         <button onclick="closeMealModal()" class="text-gray-400 hover:text-white p-1 text-lg">✕</button>
       </div>
 
@@ -422,6 +422,7 @@
     let meals = JSON.parse(localStorage.getItem('myMeals')) || DEFAULT_MEALS;
     let currentStagedItems = [];
     let editingExerciseIndex = null;
+    let editingMealContext = null; // { type, index } when editing meal
 
     let currentRoutineKey = 'upper1';
     let currentExerciseIdx = 0;
@@ -586,7 +587,7 @@
       }, 1000);
     }
 
-    // --- DIRECT SERVING MACROS & AUTO-CALORIE CALCULATOR ---
+    // --- MANUAL MACROS & AUTO-CALORIE CALCULATOR ---
     function calculateManualMacros() {
       const name = document.getElementById('manualFoodName').value;
       const grams = parseFloat(document.getElementById('manualWeight').value) || 0;
@@ -665,7 +666,16 @@
       let tKcal = 0, tC = 0, tP = 0, tF = 0;
       currentStagedItems.forEach(i => { tKcal += i.kcal; tC += i.carbs; tP += i.protein; tF += i.fats; });
 
-      meals[dayType].push({ category, items: currentStagedItems, kcal: tKcal, carbs: tC, protein: tP, fats: tF });
+      if (editingMealContext) {
+        // Replace existing meal
+        meals[editingMealContext.type][editingMealContext.index] = {
+          category, items: currentStagedItems, kcal: tKcal, carbs: tC, protein: tP, fats: tF
+        };
+      } else {
+        // Add new meal
+        meals[dayType].push({ category, items: currentStagedItems, kcal: tKcal, carbs: tC, protein: tP, fats: tF });
+      }
+
       saveState();
       renderMeals();
       closeMealModal();
@@ -694,6 +704,7 @@
             <span class="text-xs font-bold text-brand-red">${meal.category}</span>
             <div class="flex items-center gap-2">
               <span class="text-xs font-bold text-white">${meal.kcal} kcal</span>
+              <button onclick="editMeal('${type}', ${idx})" class="text-xs text-amber-400 hover:text-amber-300 font-bold px-1">✏️ Edit</button>
               <button onclick="deleteMeal('${type}', ${idx})" class="text-xs text-red-500 font-bold p-0.5">✕ Delete</button>
             </div>
           </div>
@@ -710,13 +721,32 @@
     }
 
     function openMealModal() {
+      editingMealContext = null;
+      document.getElementById('mealModalTitle').innerText = "🥗 Add Food & Auto-Calculate Calories";
       currentStagedItems = [];
       renderBasket();
       document.getElementById('mealModal').classList.remove('hidden');
       document.getElementById('mealModal').classList.add('flex');
     }
 
+    function editMeal(type, index) {
+      editingMealContext = { type, index };
+      const meal = meals[type][index];
+      
+      document.getElementById('mealModalTitle').innerText = `✏️ Edit ${meal.category} Meal`;
+      document.getElementById('modalDayType').value = type;
+      document.getElementById('modalMealCategory').value = meal.category;
+      
+      // Load existing items into staged basket
+      currentStagedItems = JSON.parse(JSON.stringify(meal.items));
+      renderBasket();
+
+      document.getElementById('mealModal').classList.remove('hidden');
+      document.getElementById('mealModal').classList.add('flex');
+    }
+
     function closeMealModal() {
+      editingMealContext = null;
       document.getElementById('mealModal').classList.add('hidden');
       document.getElementById('mealModal').classList.remove('flex');
     }
