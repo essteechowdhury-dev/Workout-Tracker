@@ -277,23 +277,23 @@
           </div>
           <div>
             <label class="text-[10px] text-gray-400 block mb-0.5">Portion Weight (Grams)</label>
-            <input type="number" id="manualWeight" placeholder="e.g. 50" oninput="calculateManualMacros()" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white text-xs outline-none">
+            <input type="number" id="manualWeight" placeholder="e.g. 50" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white text-xs outline-none">
           </div>
         </div>
 
-        <div class="text-[10px] text-gray-400 font-semibold">Enter Macros Per 100g:</div>
+        <div class="text-[10px] text-gray-400 font-semibold">Enter Actual Serving Macros (Grams):</div>
         <div class="grid grid-cols-3 gap-2">
           <div>
-            <label class="text-[9px] text-gray-400 block mb-0.5">Carbs / 100g</label>
-            <input type="number" step="0.1" id="manualC100" placeholder="e.g. 41" oninput="calculateManualMacros()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white text-xs outline-none">
+            <label class="text-[9px] text-gray-400 block mb-0.5">Carbs (g)</label>
+            <input type="number" step="0.1" id="manualCarbs" placeholder="e.g. 31.7" oninput="calculateManualMacros()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white text-xs outline-none">
           </div>
           <div>
-            <label class="text-[9px] text-gray-400 block mb-0.5">Protein / 100g</label>
-            <input type="number" step="0.1" id="manualP100" placeholder="e.g. 9.5" oninput="calculateManualMacros()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white text-xs outline-none">
+            <label class="text-[9px] text-gray-400 block mb-0.5">Protein (g)</label>
+            <input type="number" step="0.1" id="manualProtein" placeholder="e.g. 8" oninput="calculateManualMacros()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white text-xs outline-none">
           </div>
           <div>
-            <label class="text-[9px] text-gray-400 block mb-0.5">Fats / 100g</label>
-            <input type="number" step="0.1" id="manualF100" placeholder="e.g. 2" oninput="calculateManualMacros()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white text-xs outline-none">
+            <label class="text-[9px] text-gray-400 block mb-0.5">Fats (g)</label>
+            <input type="number" step="0.1" id="manualFats" placeholder="e.g. 2" oninput="calculateManualMacros()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white text-xs outline-none">
           </div>
         </div>
 
@@ -442,7 +442,6 @@
       fetchWeightLogs();
       fetchWorkoutLogs();
       
-      // Auto-recalculate elapsed time when unlocking screen or switching tabs back
       document.addEventListener('visibilitychange', handleVisibilityChange);
     });
 
@@ -459,7 +458,7 @@
       renderExerciseCard();
     }
 
-    // --- BACKGROUND BACKGROUND KEEP-ALIVE & WAKE LOCK ---
+    // --- BACKGROUND KEEP-ALIVE & WAKE LOCK ---
     async function requestWakeLock() {
       try {
         if ('wakeLock' in navigator) {
@@ -479,7 +478,6 @@
 
     function playSilentAudioLoop() {
       if (!silentAudio) {
-        // Base64 1-second silent WAV loop to keep audio context awake during screen lock
         silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAARKwAARKwAAAEACABkYXRhAgAAAAEA');
         silentAudio.loop = true;
       }
@@ -494,7 +492,6 @@
 
     function handleVisibilityChange() {
       if (document.visibilityState === 'visible' && isSessionActive) {
-        // Recalculate timers instantly on screen unlock
         const now = Date.now();
         overallSeconds = Math.floor((now - overallStartTime) / 1000);
         document.getElementById('overallTimer').innerText = formatHMS(overallSeconds);
@@ -540,7 +537,7 @@
       }
     }
 
-    // --- TIMESTAMP-BASED ACCURATE TIMERS ---
+    // --- TIMERS & DYNAMIC REST ENGINE ---
     function startSetTimer() {
       clearInterval(setTimerInterval);
       clearInterval(restTimerInterval);
@@ -589,17 +586,14 @@
       }, 1000);
     }
 
-    // --- MANUAL MACROS & AUTO-CALORIE CALCULATOR ---
+    // --- DIRECT SERVING MACROS & AUTO-CALORIE CALCULATOR ---
     function calculateManualMacros() {
       const name = document.getElementById('manualFoodName').value;
       const grams = parseFloat(document.getElementById('manualWeight').value) || 0;
-      const c100 = parseFloat(document.getElementById('manualC100').value) || 0;
-      const p100 = parseFloat(document.getElementById('manualP100').value) || 0;
-      const f100 = parseFloat(document.getElementById('manualF100').value) || 0;
+      const carbs = parseFloat(document.getElementById('manualCarbs').value) || 0;
+      const protein = parseFloat(document.getElementById('manualProtein').value) || 0;
+      const fats = parseFloat(document.getElementById('manualFats').value) || 0;
 
-      const carbs = Math.round((grams * c100) / 100);
-      const protein = Math.round((grams * p100) / 100);
-      const fats = Math.round((grams * f100) / 100);
       const kcal = Math.round((carbs * 4) + (protein * 4) + (fats * 9));
 
       document.getElementById('calcPortionKcal').innerText = kcal;
@@ -622,9 +616,9 @@
 
       document.getElementById('manualFoodName').value = '';
       document.getElementById('manualWeight').value = '';
-      document.getElementById('manualC100').value = '';
-      document.getElementById('manualP100').value = '';
-      document.getElementById('manualF100').value = '';
+      document.getElementById('manualCarbs').value = '';
+      document.getElementById('manualProtein').value = '';
+      document.getElementById('manualFats').value = '';
       calculateManualMacros();
     }
 
