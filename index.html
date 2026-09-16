@@ -20,36 +20,36 @@
     }
   </script>
 </head>
-<body class="bg-brand-dark text-gray-100 min-h-screen font-sans p-3 sm:p-6 overflow-x-hidden">
+<body class="bg-brand-dark text-gray-100 min-h-screen font-sans p-2 sm:p-6 overflow-x-hidden">
 
   <!-- HEADER -->
-  <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center pb-4 sm:pb-6 border-b border-brand-border gap-3">
+  <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center pb-3 sm:pb-6 border-b border-brand-border gap-2 sm:gap-4">
     <div class="text-center md:text-left">
-      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center justify-center md:justify-start gap-2">
+      <h1 class="text-xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center justify-center md:justify-start gap-2">
         <span class="text-brand-red">⚡</span> FITNESS & NUTRITION
       </h1>
-      <p class="text-gray-400 text-xs sm:text-sm">Targeted Split: Upper 1 | Lower 1 | Upper 2 | Lower 2</p>
+      <p class="text-gray-400 text-[11px] sm:text-sm">Targeted Split: Upper 1 | Lower 1 | Upper 2 | Lower 2</p>
     </div>
     <div class="flex flex-wrap items-center justify-center gap-2 w-full md:w-auto">
-      <div id="connectionStatus" class="text-[11px] sm:text-xs px-2.5 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
+      <div id="connectionStatus" class="text-[10px] sm:text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
         ⚡ Supabase: Connecting...
       </div>
-      <button onclick="openHistoryModal()" class="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border rounded-lg text-xs font-semibold transition">
+      <button onclick="openHistoryModal()" class="px-2 py-1 sm:px-3 sm:py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border rounded-lg text-xs font-semibold">
         📜 History
       </button>
-      <button onclick="openCustomizer()" class="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border rounded-lg text-xs font-semibold transition">
+      <button onclick="openCustomizer()" class="px-2 py-1 sm:px-3 sm:py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-brand-border rounded-lg text-xs font-semibold">
         ⚙️ Exercises
       </button>
     </div>
   </header>
 
   <!-- MAIN CONTAINER -->
-  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 mt-4 sm:mt-6">
+  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 mt-3 sm:mt-6">
 
     <!-- WORKOUT TRACKER SECTION -->
-    <section class="lg:col-span-7 space-y-4 sm:space-y-6">
-      <div class="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-5 shadow-lg">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+    <section class="lg:col-span-7 space-y-4">
+      <div class="bg-brand-card border border-brand-border rounded-xl p-3 sm:p-5 shadow-lg">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <div class="w-full sm:w-auto">
             <label class="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">Select Workout Session</label>
             <select id="routineSelect" onchange="changeRoutine(this.value)" class="w-full bg-brand-dark text-brand-red font-bold text-base sm:text-lg rounded-lg border border-brand-border p-2 focus:ring-2 focus:ring-brand-red outline-none">
@@ -63,9 +63,9 @@
           <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
             <div class="text-left sm:text-right">
               <span class="text-[10px] sm:text-xs text-gray-400 block">Session Time</span>
-              <span id="overallTimer" class="font-mono text-lg sm:text-xl font-bold text-gray-200">00:00:00</span>
+              <span id="overallTimer" class="font-mono text-base sm:text-xl font-bold text-gray-200">00:00:00</span>
             </div>
-            <button id="sessionBtn" onclick="toggleSession()" class="px-4 py-2 sm:px-5 sm:py-2.5 bg-brand-red hover:bg-brand-darkRed text-white font-bold rounded-lg transition shadow-md text-xs sm:text-sm">
+            <button id="sessionBtn" onclick="toggleSession()" class="px-3 py-2 sm:px-5 sm:py-2.5 bg-brand-red hover:bg-brand-darkRed text-white font-bold rounded-lg transition shadow-md text-xs sm:text-sm">
               ▶ START SESSION
             </button>
           </div>
@@ -75,30 +75,30 @@
           <div class="flex justify-between items-start mb-2">
             <div>
               <span id="currentStepBadge" class="text-[10px] sm:text-xs bg-brand-red/20 text-brand-red font-semibold px-2 py-0.5 rounded">Exercise 1 of 8</span>
-              <h3 id="currentExerciseName" class="text-lg sm:text-xl font-bold text-white mt-1">BENCH PRESS</h3>
+              <h3 id="currentExerciseName" class="text-base sm:text-xl font-bold text-white mt-1">BENCH PRESS</h3>
             </div>
             <div class="text-right">
-              <span class="text-[10px] sm:text-xs text-gray-400 block">Exercise Timer</span>
+              <span id="timerLabel" class="text-[10px] sm:text-xs text-gray-400 block">Set Timer</span>
               <span id="exerciseTimer" class="font-mono text-base sm:text-lg font-semibold text-brand-red">00:00</span>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs text-gray-400 my-3 bg-brand-card p-2 rounded">
-            <div>Target Sets: <span id="targetSets" class="text-white font-semibold block sm:inline">4</span></div>
-            <div>Current Set: <span id="currentSetNum" class="text-brand-red font-bold block sm:inline">1</span></div>
-            <div>Rep Target: <span id="targetReps" class="text-white font-semibold block sm:inline">10</span></div>
-            <div>Last Log: <span id="lastPerfLog" class="text-emerald-400 font-semibold block sm:inline">Loading...</span></div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px] sm:text-xs text-gray-400 my-2 bg-brand-card p-2 rounded">
+            <div>Target Sets: <span id="targetSets" class="text-white font-semibold">4</span></div>
+            <div>Current Set: <span id="currentSetNum" class="text-brand-red font-bold">1</span></div>
+            <div>Rep Target: <span id="targetReps" class="text-white font-semibold">10</span></div>
+            <div>Last Log: <span id="lastPerfLog" class="text-emerald-400 font-semibold">Loading...</span></div>
           </div>
 
           <form id="logSetForm" onsubmit="handleSetSubmit(event)" class="space-y-3 mt-3">
-            <div class="grid grid-cols-2 gap-2 sm:gap-3">
+            <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="text-[11px] sm:text-xs text-gray-400 block mb-1">Weight (KG)</label>
-                <input type="number" step="0.5" id="inputKg" required placeholder="e.g. 60" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white outline-none focus:border-brand-red text-sm">
+                <label class="text-[11px] text-gray-400 block mb-1">Weight (KG)</label>
+                <input type="number" step="0.5" id="inputKg" required placeholder="e.g. 60" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white outline-none focus:border-brand-red text-xs sm:text-sm">
               </div>
               <div>
-                <label class="text-[11px] sm:text-xs text-gray-400 block mb-1">Reps Done</label>
-                <input type="number" id="inputReps" required placeholder="e.g. 10" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white outline-none focus:border-brand-red text-sm">
+                <label class="text-[11px] text-gray-400 block mb-1">Reps Done</label>
+                <input type="number" id="inputReps" required placeholder="e.g. 10" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white outline-none focus:border-brand-red text-xs sm:text-sm">
               </div>
             </div>
             <button type="submit" id="saveSetBtn" disabled class="w-full bg-gray-700 text-gray-400 font-bold py-2 rounded transition cursor-not-allowed text-xs sm:text-sm">
@@ -108,26 +108,26 @@
         </div>
 
         <div class="mt-4">
-          <h4 class="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Saved Logs for Current Routine</h4>
-          <div id="exerciseLogHistory" class="space-y-2 text-sm max-h-40 sm:max-h-48 overflow-y-auto pr-1">
-            <p class="text-gray-500 italic text-xs">No entries saved yet for this session.</p>
+          <h4 class="text-[11px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Saved Sets & Times for Current Routine</h4>
+          <div id="exerciseLogHistory" class="space-y-2 text-xs max-h-48 overflow-y-auto pr-1">
+            <p class="text-gray-500 italic">No entries saved yet for this session.</p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- LOG BOOK & MEAL PLAN -->
-    <section class="lg:col-span-5 space-y-4 sm:space-y-6">
+    <section class="lg:col-span-5 space-y-4">
 
       <!-- LOG BOOK -->
-      <div class="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-5 shadow-lg">
-        <h2 class="text-base sm:text-lg font-bold text-white mb-3 flex items-center gap-2">
+      <div class="bg-brand-card border border-brand-border rounded-xl p-3 sm:p-5 shadow-lg">
+        <h2 class="text-base sm:text-lg font-bold text-white mb-2 sm:mb-3 flex items-center gap-2">
           <span>⚖️</span> LOG BOOK (BODYWEIGHT)
         </h2>
-        <form onsubmit="handleWeightLog(event)" class="flex gap-2 mb-4">
-          <input type="date" id="weightDate" required class="bg-brand-dark border border-brand-border text-white text-xs sm:text-sm rounded p-2 outline-none focus:border-brand-red flex-1">
-          <input type="number" step="0.1" id="weightValue" placeholder="KG" required class="w-20 sm:w-24 bg-brand-dark border border-brand-border text-white text-xs sm:text-sm rounded p-2 outline-none focus:border-brand-red">
-          <button type="submit" class="bg-brand-red hover:bg-brand-darkRed text-white px-3 py-2 rounded text-xs sm:text-sm font-semibold transition">Save</button>
+        <form onsubmit="handleWeightLog(event)" class="flex gap-2 mb-3">
+          <input type="date" id="weightDate" required class="bg-brand-dark border border-brand-border text-white text-xs rounded p-2 outline-none focus:border-brand-red flex-1 min-w-0">
+          <input type="number" step="0.1" id="weightValue" placeholder="KG" required class="w-20 bg-brand-dark border border-brand-border text-white text-xs rounded p-2 outline-none focus:border-brand-red">
+          <button type="submit" class="bg-brand-red hover:bg-brand-darkRed text-white px-3 py-2 rounded text-xs font-semibold shrink-0">Save</button>
         </form>
 
         <div class="overflow-x-auto">
@@ -145,50 +145,48 @@
       </div>
 
       <!-- MEAL PLAN TRACKER -->
-      <div class="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-5 shadow-lg">
+      <div class="bg-brand-card border border-brand-border rounded-xl p-3 sm:p-5 shadow-lg">
         <div class="flex justify-between items-center mb-3">
           <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2"><span>🥗</span> MEAL PLAN</h2>
           <div class="flex items-center gap-2">
-            <select id="mealTypeSelect" onchange="renderMeals()" class="bg-brand-dark text-xs text-brand-red font-bold rounded border border-brand-border p-1.5 outline-none">
+            <select id="mealTypeSelect" onchange="renderMeals()" class="bg-brand-dark text-[11px] sm:text-xs text-brand-red font-bold rounded border border-brand-border p-1.5 outline-none">
               <option value="training">Training Day</option>
               <option value="nontraining">Non-Training Day</option>
             </select>
-            <button onclick="openMealModal()" class="text-xs bg-brand-red hover:bg-brand-darkRed text-white px-2 py-1.5 rounded font-semibold">
+            <button onclick="openMealModal()" class="text-[11px] sm:text-xs bg-brand-red hover:bg-brand-darkRed text-white px-2 py-1.5 rounded font-semibold shrink-0">
               🔍 Add Food
             </button>
           </div>
         </div>
 
-        <div id="macroSummary" class="grid grid-cols-4 gap-1.5 sm:gap-2 bg-brand-dark p-2 rounded-lg text-center text-[10px] sm:text-xs mb-4 border border-brand-border">
+        <div id="macroSummary" class="grid grid-cols-4 gap-1 sm:gap-2 bg-brand-dark p-2 rounded-lg text-center text-[10px] sm:text-xs mb-3 border border-brand-border">
           <div><span class="text-gray-400 block">Calories</span><span id="totalKcal" class="font-bold text-brand-red">0 kcal</span></div>
           <div><span class="text-gray-400 block">Carbs</span><span id="totalCarbs" class="font-bold text-white">0g</span></div>
           <div><span class="text-gray-400 block">Protein</span><span id="totalProtein" class="font-bold text-white">0g</span></div>
           <div><span class="text-gray-400 block">Fats</span><span id="totalFats" class="font-bold text-white">0g</span></div>
         </div>
 
-        <div id="mealList" class="space-y-3 max-h-80 sm:max-h-96 overflow-y-auto pr-1"></div>
+        <div id="mealList" class="space-y-3 max-h-80 overflow-y-auto pr-1"></div>
       </div>
     </section>
 
   </main>
 
-  <!-- WORKOUT SESSION HISTORY MODAL -->
-  <div id="historyModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 sm:p-4 z-50">
+  <!-- HISTORICAL WORKOUT REVIEW MODAL -->
+  <div id="historyModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
     <div class="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-6 max-w-2xl w-full space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-brand-border pb-3">
         <h3 class="text-base sm:text-lg font-bold text-white">📜 Historical Workout Sessions</h3>
         <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-white p-1 text-lg">✕</button>
       </div>
 
-      <div class="flex gap-2">
-        <select id="historyRoutineFilter" onchange="fetchFullWorkoutHistory()" class="bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none flex-1">
-          <option value="ALL">All Workout Sessions</option>
-          <option value="UPPER BODY 1">UPPER BODY 1</option>
-          <option value="LOWER BODY 1">LOWER BODY 1</option>
-          <option value="UPPER BODY 2">UPPER BODY 2</option>
-          <option value="LOWER BODY 2">LOWER BODY 2</option>
-        </select>
-      </div>
+      <select id="historyRoutineFilter" onchange="fetchFullWorkoutHistory()" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
+        <option value="ALL">All Workout Sessions</option>
+        <option value="UPPER BODY 1">UPPER BODY 1</option>
+        <option value="LOWER BODY 1">LOWER BODY 1</option>
+        <option value="UPPER BODY 2">UPPER BODY 2</option>
+        <option value="LOWER BODY 2">LOWER BODY 2</option>
+      </select>
 
       <div id="historyLogsContainer" class="space-y-2 text-xs max-h-80 overflow-y-auto pr-1">
         <p class="text-gray-400">Loading workout history...</p>
@@ -197,14 +195,14 @@
   </div>
 
   <!-- EXERCISE EDIT & CUSTOMIZATION MODAL -->
-  <div id="customizerModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 sm:p-4 z-50">
-    <div class="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-6 max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-brand-border pb-3">
-        <h3 class="text-base sm:text-lg font-bold text-white">⚙️ Manage & Edit Exercises</h3>
+  <div id="customizerModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
+    <div class="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-6 max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto flex flex-col">
+      <div class="flex justify-between items-center border-b border-brand-border pb-3 shrink-0">
+        <h3 class="text-base sm:text-lg font-bold text-white">⚙️ Manage Exercises</h3>
         <button onclick="closeCustomizer()" class="text-gray-400 hover:text-white p-1 text-lg">✕</button>
       </div>
 
-      <form onsubmit="handleAddExercise(event)" class="space-y-3">
+      <div class="shrink-0 space-y-3">
         <div>
           <label class="text-xs text-gray-400 block mb-1">Target Routine</label>
           <select id="modalRoutineSelect" onchange="renderModalExerciseList(this.value)" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
@@ -214,51 +212,47 @@
             <option value="lower2">Friday - LOWER BODY 2</option>
           </select>
         </div>
-        <div>
-          <label class="text-xs text-gray-400 block mb-1">Exercise Name</label>
-          <input type="text" id="modalExName" required placeholder="e.g. INCLINE DUMBBELL PRESS" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs text-gray-400 block mb-1">Sets</label>
-            <input type="number" id="modalExSets" required placeholder="4" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
-          </div>
-          <div>
-            <label class="text-xs text-gray-400 block mb-1">Target Reps</label>
-            <input type="number" id="modalExReps" required placeholder="10" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
-          </div>
-        </div>
-        <button type="submit" id="modalSubmitBtn" class="w-full bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded text-xs font-semibold">
-          Add Exercise to Routine
-        </button>
-      </form>
 
-      <div class="border-t border-brand-border pt-3">
-        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Existing Exercises</h4>
+        <form onsubmit="handleAddExercise(event)" class="space-y-2 bg-brand-dark p-3 rounded border border-brand-border">
+          <h4 id="formHeader" class="text-xs font-bold text-brand-red">Add New Exercise</h4>
+          <input type="text" id="modalExName" required placeholder="Exercise Name (e.g. BENCH PRESS)" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white text-xs outline-none">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" id="modalExSets" required placeholder="Sets (e.g. 4)" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white text-xs outline-none">
+            <input type="number" id="modalExReps" required placeholder="Reps (e.g. 10)" class="w-full bg-brand-card border border-brand-border rounded p-2 text-white text-xs outline-none">
+          </div>
+          <div class="flex gap-2">
+            <button type="button" id="cancelEditBtn" onclick="resetExerciseForm()" class="hidden flex-1 bg-gray-800 text-gray-300 py-2 rounded text-xs font-semibold">Cancel</button>
+            <button type="submit" id="modalSubmitBtn" class="flex-1 bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded text-xs font-semibold">Add Exercise</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="border-t border-brand-border pt-3 overflow-y-auto flex-1 max-h-60">
+        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">All Exercises in Routine</h4>
         <div id="modalExerciseList" class="space-y-2 text-xs"></div>
       </div>
     </div>
   </div>
 
   <!-- MEAL SEARCH MODAL -->
-  <div id="mealModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 sm:p-4 z-50">
-    <div class="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-6 max-w-xl w-full space-y-4 max-h-[92vh] overflow-y-auto">
+  <div id="mealModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
+    <div class="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-6 max-w-xl w-full space-y-3 max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-brand-border pb-2">
         <h3 class="text-base sm:text-lg font-bold text-white">🥗 Food Search & Meal Builder</h3>
         <button onclick="closeMealModal()" class="text-gray-400 hover:text-white p-1 text-lg">✕</button>
       </div>
 
-      <div class="grid grid-cols-2 gap-2 sm:gap-3">
+      <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="text-[10px] sm:text-xs text-gray-400 block mb-1">Day Type</label>
-          <select id="modalDayType" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
+          <label class="text-[10px] text-gray-400 block mb-1">Day Type</label>
+          <select id="modalDayType" class="w-full bg-brand-dark border border-brand-border rounded p-1.5 text-white text-xs outline-none">
             <option value="training">Training Day</option>
             <option value="nontraining">Non-Training Day</option>
           </select>
         </div>
         <div>
-          <label class="text-[10px] sm:text-xs text-gray-400 block mb-1">Meal Category</label>
-          <select id="modalMealCategory" class="w-full bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none">
+          <label class="text-[10px] text-gray-400 block mb-1">Meal Category</label>
+          <select id="modalMealCategory" class="w-full bg-brand-dark border border-brand-border rounded p-1.5 text-white text-xs outline-none">
             <option value="Breakfast">Breakfast</option>
             <option value="Pre-Workout">Pre-Workout</option>
             <option value="Post-Workout">Post-Workout</option>
@@ -269,8 +263,8 @@
         </div>
       </div>
 
-      <div class="border-t border-brand-border pt-3">
-        <label class="text-[10px] sm:text-xs text-gray-400 block mb-1">Search Food DB or Barcode</label>
+      <div class="border-t border-brand-border pt-2">
+        <label class="text-[10px] text-gray-400 block mb-1">Search Food DB or Barcode</label>
         <div class="flex gap-2">
           <input type="text" id="foodSearchInput" placeholder="e.g. Whole Egg, Bread, Oats" class="flex-1 bg-brand-dark border border-brand-border rounded p-2 text-white text-xs outline-none min-w-0">
           <button onclick="searchFoodAPI()" class="bg-brand-red hover:bg-brand-darkRed text-white px-3 py-2 rounded text-xs font-bold shrink-0">Search</button>
@@ -280,33 +274,33 @@
       <div id="searchResults" class="hidden max-h-36 overflow-y-auto bg-brand-dark border border-brand-border rounded p-1.5 space-y-1"></div>
 
       <!-- PORTION & EDITABLE MACROS SECTION -->
-      <div id="portionSection" class="hidden bg-brand-dark border border-brand-border p-2.5 sm:p-3 rounded space-y-2">
+      <div id="portionSection" class="hidden bg-brand-dark border border-brand-border p-2.5 rounded space-y-2">
         <div class="flex justify-between items-center text-xs">
-          <span id="selectedFoodName" class="font-bold text-white truncate max-w-[180px] sm:max-w-none">Food Name</span>
+          <span id="selectedFoodName" class="font-bold text-white truncate max-w-[180px]">Food Name</span>
           <span id="macroNoticeBadge" class="text-[10px] text-gray-400">Base per 100g</span>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
           <div>
-            <label class="text-[9px] sm:text-[10px] text-gray-400 block mb-0.5">Portion (g)</label>
+            <label class="text-[9px] text-gray-400 block mb-0.5">Portion (g)</label>
             <input type="number" id="selectedWeight" value="100" oninput="recalculateSelectedPortion()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white outline-none text-xs">
           </div>
           <div>
-            <label class="text-[9px] sm:text-[10px] text-gray-400 block mb-0.5">Carbs/100g</label>
+            <label class="text-[9px] text-gray-400 block mb-0.5">Carbs/100g</label>
             <input type="number" step="0.1" id="selectedC100" oninput="recalculateSelectedPortion()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white outline-none text-xs">
           </div>
           <div>
-            <label class="text-[9px] sm:text-[10px] text-gray-400 block mb-0.5">Protein/100g</label>
+            <label class="text-[9px] text-gray-400 block mb-0.5">Protein/100g</label>
             <input type="number" step="0.1" id="selectedP100" oninput="recalculateSelectedPortion()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white outline-none text-xs">
           </div>
           <div>
-            <label class="text-[9px] sm:text-[10px] text-gray-400 block mb-0.5">Fats/100g</label>
+            <label class="text-[9px] text-gray-400 block mb-0.5">Fats/100g</label>
             <input type="number" step="0.1" id="selectedF100" oninput="recalculateSelectedPortion()" class="w-full bg-brand-card border border-brand-border rounded p-1.5 text-white outline-none text-xs">
           </div>
         </div>
 
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs border-t border-brand-border pt-2 gap-2">
-          <div class="text-[10px] sm:text-[11px] text-gray-300">
+          <div class="text-[10px] text-gray-300">
             Calculated: <b id="calcPortionKcal" class="text-brand-red">0</b> kcal | C:<b id="calcPortionC">0</b>g P:<b id="calcPortionP">0</b>g F:<b id="calcPortionF">0</b>g
           </div>
           <button onclick="addItemToCurrentMeal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded font-bold text-xs">
@@ -316,13 +310,13 @@
       </div>
 
       <div class="border-t border-brand-border pt-2">
-        <h4 class="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Meal Ingredients Basket</h4>
-        <div id="mealBasket" class="space-y-1.5 text-xs max-h-28 sm:max-h-36 overflow-y-auto pr-1">
+        <h4 class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Meal Ingredients Basket</h4>
+        <div id="mealBasket" class="space-y-1.5 text-xs max-h-28 overflow-y-auto pr-1">
           <p class="text-gray-500 italic">No foods added to this meal yet.</p>
         </div>
       </div>
 
-      <div class="bg-brand-dark p-2.5 rounded border border-brand-border text-[11px] sm:text-xs flex justify-between">
+      <div class="bg-brand-dark p-2 rounded border border-brand-border text-[11px] flex justify-between">
         <span>Total: <b id="basketKcal" class="text-brand-red">0</b> kcal</span>
         <span>C: <b id="basketCarbs" class="text-white">0</b>g</span>
         <span>P: <b id="basketProtein" class="text-white">0</b>g</span>
@@ -389,8 +383,10 @@
     let currentExerciseIdx = 0;
     let currentSetIdx = 1;
     let isSessionActive = false;
-    let overallTimerInterval, exerciseTimerInterval;
-    let overallSeconds = 0, exerciseSeconds = 0;
+    let isResting = false;
+
+    let overallTimerInterval, setTimerInterval, restTimerInterval;
+    let overallSeconds = 0, setSeconds = 0, restSeconds = 60;
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('weightDate').valueAsDate = new Date();
@@ -405,7 +401,47 @@
       localStorage.setItem('myMeals', JSON.stringify(meals));
     }
 
-    // --- HYBRID FOOD SEARCH ---
+    // --- TIMERS & REST ENGINE ---
+    function startSetTimer() {
+      clearInterval(setTimerInterval);
+      clearInterval(restTimerInterval);
+      isResting = false;
+      setSeconds = 0;
+
+      document.getElementById('timerLabel').innerText = `Set ${currentSetIdx} Timer`;
+      document.getElementById('timerLabel').className = "text-[10px] sm:text-xs text-gray-400 block";
+      document.getElementById('exerciseTimer').innerText = "00:00";
+      document.getElementById('exerciseTimer').className = "font-mono text-base sm:text-lg font-semibold text-brand-red";
+
+      setTimerInterval = setInterval(() => {
+        setSeconds++;
+        document.getElementById('exerciseTimer').innerText = formatMS(setSeconds);
+      }, 1000);
+    }
+
+    function startRestTimer() {
+      clearInterval(setTimerInterval);
+      clearInterval(restTimerInterval);
+      isResting = true;
+      restSeconds = 60;
+
+      document.getElementById('timerLabel').innerText = "Rest Time Remaining";
+      document.getElementById('timerLabel').className = "text-[10px] sm:text-xs text-amber-400 block font-bold";
+      document.getElementById('exerciseTimer').innerText = "01:00";
+      document.getElementById('exerciseTimer').className = "font-mono text-base sm:text-lg font-semibold text-amber-400";
+
+      restTimerInterval = setInterval(() => {
+        restSeconds--;
+        document.getElementById('exerciseTimer').innerText = formatMS(restSeconds);
+
+        if (restSeconds <= 0) {
+          clearInterval(restTimerInterval);
+          startSetTimer();
+        }
+      }, 1000);
+    }
+
+    // --- FOOD SEARCH & STAGING ---
     async function searchFoodAPI() {
       const query = document.getElementById('foodSearchInput').value.trim();
       if (!query) return;
@@ -458,7 +494,7 @@
       const container = document.getElementById('searchResults');
       container.innerHTML = items.map(item => `
         <div onclick='selectFoodItem(${JSON.stringify(item)})' class="p-1.5 hover:bg-brand-card rounded cursor-pointer text-xs flex justify-between border-b border-brand-border/50">
-          <span class="font-bold text-white truncate max-w-[180px] sm:max-w-none">${item.name}</span>
+          <span class="font-bold text-white truncate max-w-[180px]">${item.name}</span>
           <span class="text-gray-400 text-[10px] shrink-0 ml-1">C:${Math.round(item.c100)} | P:${Math.round(item.p100)} | F:${Math.round(item.f100)}</span>
         </div>
       `).join('');
@@ -592,7 +628,7 @@
           <div class="space-y-1">
             ${meal.items.map(item => `
               <div class="flex justify-between items-center text-xs bg-brand-card p-1.5 rounded">
-                <span class="text-gray-200 truncate max-w-[160px] sm:max-w-none">${item.name} (${item.grams}g)</span>
+                <span class="text-gray-200 truncate max-w-[150px] sm:max-w-none">${item.name} (${item.grams}g)</span>
                 <span class="text-[10px] text-gray-400 font-mono shrink-0 ml-1">${item.kcal} kcal | C:${item.carbs}g P:${item.protein}g F:${item.fats}g</span>
               </div>
             `).join('')}
@@ -618,6 +654,83 @@
       meals[type].splice(index, 1);
       saveState();
       renderMeals();
+    }
+
+    // --- EXERCISE MODAL & FULL EDITING ---
+    function openCustomizer() {
+      document.getElementById('customizerModal').classList.remove('hidden');
+      document.getElementById('customizerModal').classList.add('flex');
+      resetExerciseForm();
+      renderModalExerciseList(document.getElementById('modalRoutineSelect').value);
+    }
+
+    function closeCustomizer() {
+      document.getElementById('customizerModal').classList.add('hidden');
+      document.getElementById('customizerModal').classList.remove('flex');
+      resetExerciseForm();
+    }
+
+    function resetExerciseForm() {
+      editingExerciseIndex = null;
+      document.getElementById('formHeader').innerText = "Add New Exercise";
+      document.getElementById('modalExName').value = '';
+      document.getElementById('modalExSets').value = '';
+      document.getElementById('modalExReps').value = '';
+      document.getElementById('cancelEditBtn').classList.add('hidden');
+      document.getElementById('modalSubmitBtn').innerText = "Add Exercise to Routine";
+      document.getElementById('modalSubmitBtn').className = "flex-1 bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded text-xs font-semibold";
+    }
+
+    function renderModalExerciseList(key) {
+      const list = routines[key].exercises;
+      document.getElementById('modalExerciseList').innerHTML = list.map((ex, idx) => `
+        <div class="flex justify-between items-center bg-brand-dark p-2 rounded border border-brand-border">
+          <span class="text-white font-bold truncate max-w-[170px] sm:max-w-none">${ex.name} (${ex.sets} Sets x ${ex.reps} Reps)</span>
+          <div class="flex gap-2 shrink-0">
+            <button onclick="startEditExercise('${key}', ${idx})" class="text-amber-400 font-bold hover:text-amber-300 px-1">✏️ Edit</button>
+            <button onclick="deleteExercise('${key}', ${idx})" class="text-red-500 font-bold hover:text-red-400 px-1">✕ Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function startEditExercise(routineKey, index) {
+      editingExerciseIndex = index;
+      const ex = routines[routineKey].exercises[index];
+      document.getElementById('formHeader').innerText = "Edit Exercise Details";
+      document.getElementById('modalExName').value = ex.name;
+      document.getElementById('modalExSets').value = ex.sets;
+      document.getElementById('modalExReps').value = ex.reps;
+
+      document.getElementById('cancelEditBtn').classList.remove('hidden');
+      document.getElementById('modalSubmitBtn').innerText = "Update Exercise";
+      document.getElementById('modalSubmitBtn').className = "flex-1 bg-amber-600 hover:bg-amber-500 text-white py-2 rounded text-xs font-semibold";
+    }
+
+    function handleAddExercise(e) {
+      e.preventDefault();
+      const routineKey = document.getElementById('modalRoutineSelect').value;
+      const name = document.getElementById('modalExName').value.toUpperCase();
+      const sets = parseInt(document.getElementById('modalExSets').value);
+      const reps = parseInt(document.getElementById('modalExReps').value);
+
+      if (editingExerciseIndex !== null) {
+        routines[routineKey].exercises[editingExerciseIndex] = { name, sets, reps };
+      } else {
+        routines[routineKey].exercises.push({ name, sets, reps });
+      }
+
+      saveState();
+      resetExerciseForm();
+      renderModalExerciseList(routineKey);
+      renderExerciseCard();
+    }
+
+    function deleteExercise(key, idx) {
+      routines[key].exercises.splice(idx, 1);
+      saveState();
+      renderModalExerciseList(key);
+      renderExerciseCard();
     }
 
     // --- SUPABASE CONNECTIVITY & WORKOUT ENGINE ---
@@ -669,7 +782,10 @@
             <span class="font-bold text-white block text-xs">${item.exercise_name} (Set ${item.set_number})</span>
             <span class="text-xs text-brand-red">${item.weight_kg}kg x ${item.reps_done} reps</span>
           </div>
-          <button onclick="deleteWorkoutLog('${item.id}')" class="text-xs text-red-500 font-bold p-1">✕ Delete</button>
+          <div class="flex items-center gap-3">
+            <span class="font-mono text-xs text-gray-400">⏱ ${formatMS(item.duration_seconds || 0)}</span>
+            <button onclick="deleteWorkoutLog('${item.id}')" class="text-xs text-red-500 font-bold p-1">✕ Delete</button>
+          </div>
         </div>
       `).join('');
     }
@@ -685,79 +801,6 @@
       if (!currentEx) return;
       const { data } = await supabaseClient.from('workout_logs').select('weight_kg, reps_done').eq('exercise_name', currentEx.name).order('created_at', { ascending: false }).limit(1);
       document.getElementById('lastPerfLog').innerText = (data && data.length) ? `${data[0].weight_kg}kg x ${data[0].reps_done}` : "No history";
-    }
-
-    // --- MODAL EXERCISE CUSTOMIZER WITH FULL INLINE EDITING ---
-    function openCustomizer() {
-      document.getElementById('customizerModal').classList.remove('hidden');
-      document.getElementById('customizerModal').classList.add('flex');
-      resetExerciseForm();
-      renderModalExerciseList(document.getElementById('modalRoutineSelect').value);
-    }
-
-    function closeCustomizer() {
-      document.getElementById('customizerModal').classList.add('hidden');
-      document.getElementById('customizerModal').classList.remove('flex');
-      resetExerciseForm();
-    }
-
-    function resetExerciseForm() {
-      editingExerciseIndex = null;
-      document.getElementById('modalExName').value = '';
-      document.getElementById('modalExSets').value = '';
-      document.getElementById('modalExReps').value = '';
-      document.getElementById('modalSubmitBtn').innerText = "Add Exercise to Routine";
-      document.getElementById('modalSubmitBtn').className = "w-full bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded text-xs font-semibold";
-    }
-
-    function renderModalExerciseList(key) {
-      const list = routines[key].exercises;
-      document.getElementById('modalExerciseList').innerHTML = list.map((ex, idx) => `
-        <div class="flex justify-between items-center bg-brand-dark p-2 rounded border border-brand-border">
-          <span class="text-white font-bold truncate max-w-[180px] sm:max-w-none">${ex.name} (${ex.sets} Sets x ${ex.reps} Reps)</span>
-          <div class="flex gap-2 shrink-0">
-            <button onclick="startEditExercise('${key}', ${idx})" class="text-amber-400 font-bold hover:text-amber-300 px-1">✏️ Edit</button>
-            <button onclick="deleteExercise('${key}', ${idx})" class="text-red-500 font-bold hover:text-red-400 px-1">✕ Delete</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function startEditExercise(routineKey, index) {
-      editingExerciseIndex = index;
-      const ex = routines[routineKey].exercises[index];
-      document.getElementById('modalExName').value = ex.name;
-      document.getElementById('modalExSets').value = ex.sets;
-      document.getElementById('modalExReps').value = ex.reps;
-
-      document.getElementById('modalSubmitBtn').innerText = "Update Exercise";
-      document.getElementById('modalSubmitBtn').className = "w-full bg-amber-600 hover:bg-amber-500 text-white py-2 rounded text-xs font-semibold";
-    }
-
-    function handleAddExercise(e) {
-      e.preventDefault();
-      const routineKey = document.getElementById('modalRoutineSelect').value;
-      const name = document.getElementById('modalExName').value.toUpperCase();
-      const sets = parseInt(document.getElementById('modalExSets').value);
-      const reps = parseInt(document.getElementById('modalExReps').value);
-
-      if (editingExerciseIndex !== null) {
-        routines[routineKey].exercises[editingExerciseIndex] = { name, sets, reps };
-      } else {
-        routines[routineKey].exercises.push({ name, sets, reps });
-      }
-
-      saveState();
-      resetExerciseForm();
-      renderModalExerciseList(routineKey);
-      renderExerciseCard();
-    }
-
-    function deleteExercise(key, idx) {
-      routines[key].exercises.splice(idx, 1);
-      saveState();
-      renderModalExerciseList(key);
-      renderExerciseCard();
     }
 
     function openHistoryModal() {
@@ -811,13 +854,16 @@
         isSessionActive = true;
         document.getElementById('sessionBtn').innerText = '⏹ STOP SESSION';
         document.getElementById('saveSetBtn').disabled = false;
+        
         overallSeconds = 0;
         overallTimerInterval = setInterval(() => { overallSeconds++; document.getElementById('overallTimer').innerText = formatHMS(overallSeconds); }, 1000);
-        exerciseSeconds = 0;
-        exerciseTimerInterval = setInterval(() => { exerciseSeconds++; document.getElementById('exerciseTimer').innerText = formatMS(exerciseSeconds); }, 1000);
+        
+        startSetTimer();
       } else {
         isSessionActive = false;
-        clearInterval(overallTimerInterval); clearInterval(exerciseTimerInterval);
+        clearInterval(overallTimerInterval);
+        clearInterval(setTimerInterval);
+        clearInterval(restTimerInterval);
         document.getElementById('sessionBtn').innerText = '▶ START SESSION';
         document.getElementById('saveSetBtn').disabled = true;
       }
@@ -831,18 +877,33 @@
 
       if (supabaseClient) {
         await supabaseClient.from('workout_logs').insert([{
-          workout_day: routines[currentRoutineKey].title, exercise_name: currentEx.name, set_number: currentSetIdx, weight_kg: kg, reps_done: reps, duration_seconds: exerciseSeconds
+          workout_day: routines[currentRoutineKey].title,
+          exercise_name: currentEx.name,
+          set_number: currentSetIdx,
+          weight_kg: kg,
+          reps_done: reps,
+          duration_seconds: setSeconds
         }]);
         await fetchWorkoutLogs();
       }
 
       document.getElementById('logSetForm').reset();
-      if (currentSetIdx < currentEx.sets) currentSetIdx++;
-      else {
+
+      if (currentSetIdx < currentEx.sets) {
+        currentSetIdx++;
+        renderExerciseCard();
+        startRestTimer();
+      } else {
         currentSetIdx = 1;
-        if (currentExerciseIdx < routines[currentRoutineKey].exercises.length - 1) currentExerciseIdx++;
+        if (currentExerciseIdx < routines[currentRoutineKey].exercises.length - 1) {
+          currentExerciseIdx++;
+          renderExerciseCard();
+          startRestTimer();
+        } else {
+          alert("🎉 Complete workout session finished!");
+          toggleSession();
+        }
       }
-      renderExerciseCard();
     }
 
     async function handleWeightLog(e) {
