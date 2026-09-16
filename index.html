@@ -239,7 +239,7 @@
     </div>
   </div>
 
-  <!-- MEAL BUILDER & EDIT MODAL -->
+  <!-- MANUAL MEAL BUILDER & EDIT MODAL -->
   <div id="mealModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
     <div class="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-6 max-w-xl w-full space-y-3 max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-brand-border pb-2">
@@ -301,7 +301,7 @@
           <div class="text-[10px] sm:text-[11px] text-gray-300">
             Portion Totals: <b id="calcPortionKcal" class="text-brand-red">0</b> kcal | C:<b id="calcPortionC">0</b>g P:<b id="calcPortionP">0</b>g F:<b id="calcPortionF">0</b>g
           </div>
-          <button onclick="addManualItemToMeal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded font-bold text-xs">
+          <button id="addOrUpdateBasketBtn" onclick="addManualItemToMeal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded font-bold text-xs">
             + Add Food to Basket
           </button>
         </div>
@@ -422,7 +422,8 @@
     let meals = JSON.parse(localStorage.getItem('myMeals')) || DEFAULT_MEALS;
     let currentStagedItems = [];
     let editingExerciseIndex = null;
-    let editingMealContext = null; // { type, index } when editing meal
+    let editingMealContext = null;
+    let editingBasketItemIndex = null;
 
     let currentRoutineKey = 'upper1';
     let currentExerciseIdx = 0;
@@ -612,7 +613,15 @@
         return;
       }
 
-      currentStagedItems.push(data);
+      if (editingBasketItemIndex !== null) {
+        currentStagedItems[editingBasketItemIndex] = data;
+        editingBasketItemIndex = null;
+        document.getElementById('addOrUpdateBasketBtn').innerText = "+ Add Food to Basket";
+        document.getElementById('addOrUpdateBasketBtn').className = "w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded font-bold text-xs";
+      } else {
+        currentStagedItems.push(data);
+      }
+
       renderBasket();
 
       document.getElementById('manualFoodName').value = '';
@@ -620,6 +629,22 @@
       document.getElementById('manualCarbs').value = '';
       document.getElementById('manualProtein').value = '';
       document.getElementById('manualFats').value = '';
+      calculateManualMacros();
+    }
+
+    function startEditBasketItem(idx) {
+      editingBasketItemIndex = idx;
+      const item = currentStagedItems[idx];
+
+      document.getElementById('manualFoodName').value = item.name;
+      document.getElementById('manualWeight').value = item.grams;
+      document.getElementById('manualCarbs').value = item.carbs;
+      document.getElementById('manualProtein').value = item.protein;
+      document.getElementById('manualFats').value = item.fats;
+
+      document.getElementById('addOrUpdateBasketBtn').innerText = "Update Basket Item";
+      document.getElementById('addOrUpdateBasketBtn').className = "w-full sm:w-auto bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded font-bold text-xs";
+
       calculateManualMacros();
     }
 
@@ -640,6 +665,7 @@
               </div>
               <div class="flex items-center gap-2 shrink-0">
                 <span class="text-brand-red font-bold text-xs">${item.kcal} kcal</span>
+                <button onclick="startEditBasketItem(${idx})" class="text-amber-400 font-bold hover:text-amber-300 text-xs px-1">✏️</button>
                 <button onclick="removeStagedItem(${idx})" class="text-red-500 font-bold hover:text-red-400 p-1">✕</button>
               </div>
             </div>
@@ -667,12 +693,10 @@
       currentStagedItems.forEach(i => { tKcal += i.kcal; tC += i.carbs; tP += i.protein; tF += i.fats; });
 
       if (editingMealContext) {
-        // Replace existing meal
         meals[editingMealContext.type][editingMealContext.index] = {
           category, items: currentStagedItems, kcal: tKcal, carbs: tC, protein: tP, fats: tF
         };
       } else {
-        // Add new meal
         meals[dayType].push({ category, items: currentStagedItems, kcal: tKcal, carbs: tC, protein: tP, fats: tF });
       }
 
@@ -701,7 +725,10 @@
       document.getElementById('mealList').innerHTML = mealList.map((meal, idx) => `
         <div class="bg-brand-dark p-2.5 sm:p-3 border border-brand-border rounded-lg flex flex-col gap-1.5">
           <div class="flex justify-between items-center border-b border-brand-border pb-1">
-            <span class="text-xs font-bold text-brand-red">${meal.category}</span>
+            <div>
+              <span class="text-xs font-bold text-brand-red block">${meal.category}</span>
+              <span class="text-[10px] text-gray-400 font-mono">C:${meal.carbs}g | P:${meal.protein}g | F:${meal.fats}g</span>
+            </div>
             <div class="flex items-center gap-2">
               <span class="text-xs font-bold text-white">${meal.kcal} kcal</span>
               <button onclick="editMeal('${type}', ${idx})" class="text-xs text-amber-400 hover:text-amber-300 font-bold px-1">✏️ Edit</button>
@@ -722,7 +749,10 @@
 
     function openMealModal() {
       editingMealContext = null;
+      editingBasketItemIndex = null;
       document.getElementById('mealModalTitle').innerText = "🥗 Add Food & Auto-Calculate Calories";
+      document.getElementById('addOrUpdateBasketBtn').innerText = "+ Add Food to Basket";
+      document.getElementById('addOrUpdateBasketBtn').className = "w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded font-bold text-xs";
       currentStagedItems = [];
       renderBasket();
       document.getElementById('mealModal').classList.remove('hidden');
@@ -731,13 +761,15 @@
 
     function editMeal(type, index) {
       editingMealContext = { type, index };
+      editingBasketItemIndex = null;
       const meal = meals[type][index];
       
       document.getElementById('mealModalTitle').innerText = `✏️ Edit ${meal.category} Meal`;
       document.getElementById('modalDayType').value = type;
       document.getElementById('modalMealCategory').value = meal.category;
+      document.getElementById('addOrUpdateBasketBtn').innerText = "+ Add Food to Basket";
+      document.getElementById('addOrUpdateBasketBtn').className = "w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded font-bold text-xs";
       
-      // Load existing items into staged basket
       currentStagedItems = JSON.parse(JSON.stringify(meal.items));
       renderBasket();
 
@@ -747,6 +779,7 @@
 
     function closeMealModal() {
       editingMealContext = null;
+      editingBasketItemIndex = null;
       document.getElementById('mealModal').classList.add('hidden');
       document.getElementById('mealModal').classList.remove('flex');
     }
