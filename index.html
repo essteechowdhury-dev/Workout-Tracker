@@ -170,10 +170,15 @@
         </div>
       </div>
 
-      <!-- MEAL PLAN TRACKER WITH DUAL DROPDOWNS -->
+      <!-- MEAL PLAN TRACKER WITH RESET DEFAULT MEALS -->
       <div class="bg-brand-card border border-brand-border rounded-xl p-3 sm:p-5 shadow-lg">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
-          <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2"><span>🥗</span> MEAL PLAN</h2>
+          <div class="flex justify-between items-center w-full sm:w-auto gap-2">
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2"><span>🥗</span> MEAL PLAN</h2>
+            <button onclick="resetDefaultMeals()" class="text-[10px] bg-gray-800 hover:bg-gray-700 text-amber-400 border border-brand-border px-2 py-1 rounded font-semibold sm:hidden">
+              ↺ Reset Meals
+            </button>
+          </div>
           
           <div class="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
             <!-- DAY TYPE DROPDOWN -->
@@ -195,6 +200,9 @@
 
             <button onclick="openMealModal()" class="text-[11px] bg-brand-red hover:bg-brand-darkRed text-white px-2 py-1.5 rounded font-semibold shrink-0">
               ➕ Add
+            </button>
+            <button onclick="resetDefaultMeals()" class="text-[10px] bg-gray-800 hover:bg-gray-700 text-amber-400 border border-brand-border px-2 py-1.5 rounded font-semibold hidden sm:inline-block">
+              ↺ Reset
             </button>
           </div>
         </div>
@@ -444,6 +452,48 @@
             { name: "Oats", grams: 40, carbs: 26, protein: 7, fats: 3, kcal: 159 },
             { name: "Turkey Slice", grams: 30, carbs: 2, protein: 20, fats: 2, kcal: 69 }
           ]
+        },
+        {
+          category: "Pre-Workout",
+          kcal: 400, carbs: 50, protein: 40, fats: 4,
+          items: [
+            { name: "White Rice (Cooked)", grams: 180, carbs: 50, protein: 5, fats: 1, kcal: 229 },
+            { name: "Chicken Breast (Cooked)", grams: 130, carbs: 0, protein: 35, fats: 3, kcal: 171 }
+          ]
+        },
+        {
+          category: "Post-Workout",
+          kcal: 320, carbs: 35, protein: 40, fats: 2,
+          items: [
+            { name: "Whey Protein Powder", grams: 30, carbs: 3, protein: 25, fats: 1, kcal: 121 },
+            { name: "Banana", grams: 120, carbs: 32, protein: 1, fats: 0, kcal: 132 },
+            { name: "Skimmed Milk", grams: 200, carbs: 0, protein: 14, fats: 1, kcal: 67 }
+          ]
+        },
+        {
+          category: "Lunch",
+          kcal: 450, carbs: 40, protein: 45, fats: 10,
+          items: [
+            { name: "Lean Steak / Beef", grams: 150, carbs: 0, protein: 39, fats: 9, kcal: 247 },
+            { name: "Sweet Potato", grams: 200, carbs: 40, protein: 4, fats: 0, kcal: 176 },
+            { name: "Green Salad", grams: 100, carbs: 0, protein: 2, fats: 1, kcal: 27 }
+          ]
+        },
+        {
+          category: "Dinner",
+          kcal: 380, carbs: 10, protein: 48, fats: 18,
+          items: [
+            { name: "Salmon Fillet", grams: 160, carbs: 0, protein: 40, fats: 18, kcal: 322 },
+            { name: "Steamed Broccoli", grams: 150, carbs: 10, protein: 8, fats: 0, kcal: 72 }
+          ]
+        },
+        {
+          category: "Snack",
+          kcal: 200, carbs: 12, protein: 20, fats: 8,
+          items: [
+            { name: "Greek Yogurt Non-Fat", grams: 150, carbs: 6, protein: 15, fats: 0, kcal: 84 },
+            { name: "Almonds", grams: 15, carbs: 6, protein: 5, fats: 8, kcal: 116 }
+          ]
         }
       ],
       nontraining: [
@@ -453,6 +503,22 @@
           items: [
             { name: "Egg White", grams: 150, carbs: 1, protein: 16, fats: 0, kcal: 68 },
             { name: "Greek Yogurt Non-Fat", grams: 200, carbs: 7, protein: 20, fats: 6, kcal: 182 }
+          ]
+        },
+        {
+          category: "Lunch",
+          kcal: 350, carbs: 15, protein: 45, fats: 12,
+          items: [
+            { name: "Chicken Breast", grams: 150, carbs: 0, protein: 42, fats: 4, kcal: 204 },
+            { name: "Avocado", grams: 60, carbs: 15, protein: 3, fats: 8, kcal: 144 }
+          ]
+        },
+        {
+          category: "Dinner",
+          kcal: 300, carbs: 10, protein: 40, fats: 10,
+          items: [
+            { name: "White Fish / Cod", grams: 180, carbs: 0, protein: 36, fats: 2, kcal: 162 },
+            { name: "Olive Oil & Salad", grams: 100, carbs: 10, protein: 4, fats: 8, kcal: 138 }
           ]
         }
       ]
@@ -504,6 +570,13 @@
       renderModalExerciseList(document.getElementById('modalRoutineSelect').value);
       renderExerciseTabs();
       renderExerciseCard();
+    }
+
+    function resetDefaultMeals() {
+      if (!confirm("Reset meals to default multi-category plan?")) return;
+      meals = JSON.parse(JSON.stringify(DEFAULT_MEALS));
+      saveState();
+      renderMeals();
     }
 
     // --- ACTIVE SESSION RECOVERY ---
@@ -879,7 +952,6 @@
       }
 
       document.getElementById('mealList').innerHTML = displayedMeals.map((meal, idx) => {
-        // Map back to original index in array
         const realIdx = allDayMeals.indexOf(meal);
         return `
           <div class="bg-brand-dark p-2.5 sm:p-3 border border-brand-border rounded-lg flex flex-col gap-1.5">
