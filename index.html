@@ -192,8 +192,8 @@
           <div><span class="text-gray-400 block">Fats</span><span id="totalFats" class="font-bold text-white">0g</span></div>
         </div>
 
-        <!-- SCROLLABLE MEALS WRAPPER FOR MOBILE -->
-        <div id="mealList" class="space-y-3 max-h-[60vh] sm:max-h-96 overflow-y-auto pr-1"></div>
+        <!-- FULL UNRESTRICTED MOBILE MEAL LIST CONTAINER -->
+        <div id="mealList" class="space-y-3 pt-1"></div>
       </div>
     </section>
 
@@ -1208,7 +1208,7 @@
 
       let logs = [];
       if (supabaseClient) {
-        const { data } = await supabaseClient.from('workout_logs').select('*').eq('exercise_name', currentEx.name).order('created_at', { ascending: false }).limit(10);
+        const { data } = await supabaseClient.from('workout_logs').select('*').eq('exercise_name', currentEx.name).order('created_at', { ascending: false }).limit(20);
         logs = data || [];
       } else {
         const local = JSON.parse(localStorage.getItem('myWorkoutLogs')) || [];
@@ -1220,11 +1220,9 @@
         return;
       }
 
-      // Group logs by session (created_at date) to find the most recent workout session sets
+      // Find lowest reps in the most recent session
       const latestDateStr = new Date(logs[0].created_at).toDateString();
       const lastSessionSets = logs.filter(l => new Date(l.created_at).toDateString() === latestDateStr);
-
-      // Find lowest reps in that session and weight used
       const lowestRepsSet = lastSessionSets.reduce((min, curr) => (curr.reps_done < min.reps_done ? curr : min), lastSessionSets[0]);
 
       document.getElementById('lastPerfLog').innerText = `${lowestRepsSet.weight_kg}kg x ${lowestRepsSet.reps_done} (min)`;
