@@ -71,7 +71,14 @@
           </div>
         </div>
 
-        <div id="activeExerciseContainer" class="mt-3 p-3 sm:p-4 bg-brand-dark border border-brand-border rounded-lg">
+        <!-- EXERCISE SELECTOR TABS -->
+        <div class="mb-3">
+          <label class="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">Quick Exercise Switch</label>
+          <div id="exerciseTabs" class="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none"></div>
+        </div>
+
+        <!-- ACTIVE EXERCISE CARD -->
+        <div id="activeExerciseContainer" class="p-3 sm:p-4 bg-brand-dark border border-brand-border rounded-lg">
           <div class="flex justify-between items-start mb-2">
             <div>
               <span id="currentStepBadge" class="text-[10px] sm:text-xs bg-brand-red/20 text-brand-red font-semibold px-2 py-0.5 rounded">Exercise 1 of 8</span>
@@ -105,12 +112,21 @@
               Save Set Log ➔
             </button>
           </form>
+
+          <!-- INTER-EXERCISE RESUME BUTTON -->
+          <div id="nextExercisePrompt" class="hidden mt-3 p-3 bg-brand-card border border-brand-red rounded text-center space-y-2">
+            <p class="text-xs font-bold text-white">🎉 Exercise sets completed!</p>
+            <button onclick="resumeNextExercise()" class="w-full bg-brand-red hover:bg-brand-darkRed text-white py-2 rounded font-bold text-xs">
+              ▶ Resume for Next Exercise
+            </button>
+          </div>
         </div>
 
+        <!-- GROUPED EXERCISE HISTORY BOXES -->
         <div class="mt-4">
-          <h4 class="text-[11px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Saved Sets & Times for Current Routine</h4>
-          <div id="exerciseLogHistory" class="space-y-2 text-xs max-h-48 overflow-y-auto pr-1">
-            <p class="text-gray-500 italic">No entries saved yet for this session.</p>
+          <h4 class="text-[11px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Exercise Performance Log Cards</h4>
+          <div id="exerciseGroupedHistory" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+            <p class="text-gray-500 italic text-xs">No exercise logs saved yet for this routine.</p>
           </div>
         </div>
       </div>
@@ -119,20 +135,30 @@
     <!-- LOG BOOK & MEAL PLAN -->
     <section class="lg:col-span-5 space-y-4">
 
-      <!-- LOG BOOK -->
+      <!-- LOG BOOK & WEEKLY SUMMARY -->
       <div class="bg-brand-card border border-brand-border rounded-xl p-3 sm:p-5 shadow-lg">
         <h2 class="text-base sm:text-lg font-bold text-white mb-2 sm:mb-3 flex items-center gap-2">
           <span>⚖️</span> LOG BOOK (BODYWEIGHT)
         </h2>
+
         <form onsubmit="handleWeightLog(event)" class="flex gap-2 mb-3">
           <input type="date" id="weightDate" required class="bg-brand-dark border border-brand-border text-white text-xs rounded p-2 outline-none focus:border-brand-red flex-1 min-w-0">
           <input type="number" step="0.1" id="weightValue" placeholder="KG" required class="w-20 bg-brand-dark border border-brand-border text-white text-xs rounded p-2 outline-none focus:border-brand-red">
           <button type="submit" class="bg-brand-red hover:bg-brand-darkRed text-white px-3 py-2 rounded text-xs font-semibold shrink-0">Save</button>
         </form>
 
-        <div class="overflow-x-auto">
+        <!-- SUNDAY-TO-SUNDAY EXPANDABLE SUMMARY CARD -->
+        <div class="mb-3 bg-brand-dark p-2.5 border border-brand-border rounded-lg">
+          <button onclick="toggleWeeklySummary()" class="w-full flex justify-between items-center text-xs font-bold text-amber-400">
+            <span>📅 Sunday-to-Sunday Weekly Averages</span>
+            <span id="summaryToggleIcon">▼</span>
+          </button>
+          <div id="weeklySummaryContent" class="mt-2 space-y-2 text-xs"></div>
+        </div>
+
+        <div class="overflow-x-auto max-h-48 overflow-y-auto">
           <table class="w-full text-left text-xs text-gray-300">
-            <thead class="bg-brand-dark text-gray-400 uppercase">
+            <thead class="bg-brand-dark text-gray-400 uppercase sticky top-0">
               <tr>
                 <th class="p-2">Date</th>
                 <th class="p-2">Weight</th>
@@ -166,7 +192,7 @@
           <div><span class="text-gray-400 block">Fats</span><span id="totalFats" class="font-bold text-white">0g</span></div>
         </div>
 
-        <div id="mealList" class="space-y-3 max-h-80 overflow-y-auto pr-1"></div>
+        <div id="mealList" class="space-y-3"></div>
       </div>
     </section>
 
@@ -424,10 +450,12 @@
     let editingExerciseIndex = null;
     let editingMealContext = null;
     let editingBasketItemIndex = null;
+    let rawWeightData = [];
 
     let currentRoutineKey = 'upper1';
     let currentExerciseIdx = 0;
     let currentSetIdx = 1;
+    let lastEnteredWeight = null;
     let isSessionActive = false;
     let isResting = false;
 
@@ -439,6 +467,8 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('weightDate').valueAsDate = new Date();
+      restoreActiveSessionState();
+      renderExerciseTabs();
       renderExerciseCard();
       renderMeals();
       fetchWeightLogs();
@@ -457,25 +487,70 @@
       routines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
       saveState();
       renderModalExerciseList(document.getElementById('modalRoutineSelect').value);
+      renderExerciseTabs();
       renderExerciseCard();
     }
 
-    // --- BACKGROUND KEEP-ALIVE & WAKE LOCK ---
-    async function requestWakeLock() {
+    // --- ACTIVE SESSION RECOVERY ---
+    function saveActiveSessionState() {
+      if (!isSessionActive) {
+        localStorage.removeItem('activeSessionState');
+        return;
+      }
+      const state = {
+        routineKey: currentRoutineKey,
+        exerciseIdx: currentExerciseIdx,
+        setIdx: currentSetIdx,
+        overallStartTime,
+        lastEnteredWeight
+      };
+      localStorage.setItem('activeSessionState', JSON.stringify(state));
+    }
+
+    function restoreActiveSessionState() {
+      const saved = localStorage.getItem('activeSessionState');
+      if (!saved) return;
       try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await navigator.wakeLock.request('screen');
-        }
-      } catch (err) {
-        console.warn("Wake lock unavailable:", err);
+        const state = JSON.parse(saved);
+        currentRoutineKey = state.routineKey || 'upper1';
+        currentExerciseIdx = state.exerciseIdx || 0;
+        currentSetIdx = state.setIdx || 1;
+        overallStartTime = state.overallStartTime || Date.now();
+        lastEnteredWeight = state.lastEnteredWeight || null;
+        document.getElementById('routineSelect').value = currentRoutineKey;
+
+        isSessionActive = true;
+        document.getElementById('sessionBtn').innerText = '⏹ STOP SESSION';
+        document.getElementById('saveSetBtn').disabled = false;
+
+        overallSeconds = Math.floor((Date.now() - overallStartTime) / 1000);
+        document.getElementById('overallTimer').innerText = formatHMS(overallSeconds);
+        overallTimerInterval = setInterval(() => {
+          overallSeconds = Math.floor((Date.now() - overallStartTime) / 1000);
+          document.getElementById('overallTimer').innerText = formatHMS(overallSeconds);
+        }, 1000);
+
+        startSetTimer();
+      } catch (e) {
+        console.warn("Could not restore active session state.");
       }
     }
 
-    function releaseWakeLock() {
-      if (wakeLock) {
-        wakeLock.release();
-        wakeLock = null;
+    // --- NOTIFICATION & BACKGROUND TIMER ---
+    function requestNotificationPermission() {
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
       }
+    }
+
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+      } catch (err) {}
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) { wakeLock.release(); wakeLock = null; }
     }
 
     function playSilentAudioLoop() {
@@ -487,9 +562,7 @@
     }
 
     function stopSilentAudioLoop() {
-      if (silentAudio) {
-        silentAudio.pause();
-      }
+      if (silentAudio) silentAudio.pause();
     }
 
     function handleVisibilityChange() {
@@ -513,9 +586,15 @@
       }
     }
 
-    // --- SOUND & VIBRATION NOTIFICATION ---
     function triggerRestOverAlert() {
       if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 500]);
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("⚡ Rest Time Complete!", {
+          body: "Time for your next set!",
+          icon: "https://cdn-icons-png.flaticon.com/512/2964/2964514.png"
+        });
+      }
 
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -523,23 +602,17 @@
           setTimeout(() => {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.value = freq;
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.type = 'sine'; osc.frequency.value = freq;
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
             osc.stop(audioCtx.currentTime + duration);
           }, delay);
         };
-        playBeep(880, 0.25, 0);
-        playBeep(880, 0.45, 300);
-      } catch (e) {
-        console.warn("Audio Context disabled");
-      }
+        playBeep(880, 0.25, 0); playBeep(880, 0.45, 300);
+      } catch (e) {}
     }
 
-    // --- TIMERS & DYNAMIC REST ENGINE ---
+    // --- TIMERS & REST ENGINE ---
     function startSetTimer() {
       clearInterval(setTimerInterval);
       clearInterval(restTimerInterval);
@@ -586,6 +659,45 @@
           startSetTimer();
         }
       }, 1000);
+    }
+
+    function pauseTimerForExerciseChange() {
+      clearInterval(setTimerInterval);
+      clearInterval(restTimerInterval);
+      isResting = false;
+      document.getElementById('timerLabel').innerText = "Timer Paused";
+      document.getElementById('exerciseTimer').innerText = "PAUSED";
+      document.getElementById('nextExercisePrompt').classList.remove('hidden');
+    }
+
+    function resumeNextExercise() {
+      document.getElementById('nextExercisePrompt').classList.add('hidden');
+      startSetTimer();
+    }
+
+    // --- EXERCISE TAB NAVIGATION ---
+    function renderExerciseTabs() {
+      const exList = routines[currentRoutineKey].exercises || [];
+      const container = document.getElementById('exerciseTabs');
+
+      container.innerHTML = exList.map((ex, idx) => `
+        <button onclick="selectExerciseIndex(${idx})" class="px-2.5 py-1 rounded text-xs font-bold whitespace-nowrap border transition ${
+          idx === currentExerciseIdx 
+            ? 'bg-brand-red border-brand-red text-white' 
+            : 'bg-brand-dark border-brand-border text-gray-400 hover:text-white'
+        }">
+          ${idx + 1}. ${ex.name}
+        </button>
+      `).join('');
+    }
+
+    function selectExerciseIndex(idx) {
+      currentExerciseIdx = idx;
+      currentSetIdx = 1;
+      lastEnteredWeight = null;
+      renderExerciseTabs();
+      renderExerciseCard();
+      if (isSessionActive) startSetTimer();
     }
 
     // --- MANUAL MACROS & AUTO-CALORIE CALCULATOR ---
@@ -858,6 +970,7 @@
       saveState();
       resetExerciseForm();
       renderModalExerciseList(routineKey);
+      renderExerciseTabs();
       renderExerciseCard();
     }
 
@@ -865,77 +978,213 @@
       routines[key].exercises.splice(idx, 1);
       saveState();
       renderModalExerciseList(key);
+      renderExerciseTabs();
       renderExerciseCard();
     }
 
-    // --- SUPABASE CONNECTIVITY & WORKOUT ENGINE ---
+    // --- WEIGHT LOG & SUNDAY-TO-SUNDAY WEEKLY AVERAGEDelta ---
     async function fetchWeightLogs() {
       const statusBadge = document.getElementById('connectionStatus');
-      if (!supabaseClient) {
+      let data = [];
+
+      if (supabaseClient) {
+        const res = await supabaseClient.from('weight_logs').select('*').order('log_date', { ascending: false });
+        if (!res.error) data = res.data || [];
+        statusBadge.className = "text-xs px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold";
+        statusBadge.innerText = "⚡ Supabase Connected";
+      } else {
         statusBadge.className = "text-xs px-2.5 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold";
         statusBadge.innerText = "⚡ Local Storage Mode";
-        return;
+        data = JSON.parse(localStorage.getItem('myWeightLogs')) || [];
       }
 
-      const { data, error } = await supabaseClient.from('weight_logs').select('*').order('log_date', { ascending: false });
+      rawWeightData = data;
 
-      if (error) {
-        statusBadge.className = "text-xs px-2.5 py-1 rounded bg-red-500/10 text-red-400 border border-red-500/20 font-semibold";
-        statusBadge.innerText = "⚡ Supabase Failed";
-        return;
-      }
-
-      statusBadge.className = "text-xs px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold";
-      statusBadge.innerText = "⚡ Supabase Connected";
-
-      document.getElementById('weightTableBody').innerHTML = (data || []).map(log => `
+      document.getElementById('weightTableBody').innerHTML = data.map(log => `
         <tr class="hover:bg-brand-dark/50">
           <td class="p-2">${log.log_date}</td>
           <td class="p-2 font-bold text-white">${log.weight_kg} kg</td>
-          <td class="p-2 text-right"><button onclick="deleteWeightLog('${log.id}')" class="text-xs text-red-500 font-bold">✕ Delete</button></td>
+          <td class="p-2 text-right"><button onclick="deleteWeightLog('${log.id || log.log_date}')" class="text-xs text-red-500 font-bold">✕ Delete</button></td>
         </tr>
       `).join('');
+
+      renderSundayWeeklySummary();
     }
 
-    async function deleteWeightLog(id) {
-      if (supabaseClient) await supabaseClient.from('weight_logs').delete().eq('id', id);
+    async function handleWeightLog(e) {
+      e.preventDefault();
+      const date = document.getElementById('weightDate').value;
+      const weight = parseFloat(document.getElementById('weightValue').value);
+
+      if (supabaseClient) {
+        await supabaseClient.from('weight_logs').upsert([{ log_date: date, weight_kg: weight }]);
+      } else {
+        let local = JSON.parse(localStorage.getItem('myWeightLogs')) || [];
+        const existing = local.findIndex(l => l.log_date === date);
+        if (existing >= 0) local[existing].weight_kg = weight;
+        else local.unshift({ log_date: date, weight_kg: weight });
+        localStorage.setItem('myWeightLogs', JSON.stringify(local));
+      }
+
+      document.getElementById('weightValue').value = '';
       fetchWeightLogs();
     }
 
-    async function fetchWorkoutLogs() {
-      if (!supabaseClient) return;
-      const routineName = routines[currentRoutineKey].title;
-      const { data } = await supabaseClient.from('workout_logs').select('*').eq('workout_day', routineName).order('created_at', { ascending: false }).limit(10);
-      const container = document.getElementById('exerciseLogHistory');
-      if (!data || data.length === 0) {
-        container.innerHTML = `<p class="text-gray-500 italic text-xs">No entries saved yet for this session.</p>`;
-        return;
+    async function deleteWeightLog(idOrDate) {
+      if (!confirm("Delete weight entry?")) return;
+      if (supabaseClient) {
+        await supabaseClient.from('weight_logs').delete().or(`id.eq.${idOrDate},log_date.eq.${idOrDate}`);
+      } else {
+        let local = JSON.parse(localStorage.getItem('myWeightLogs')) || [];
+        local = local.filter(l => l.id !== idOrDate && l.log_date !== idOrDate);
+        localStorage.setItem('myWeightLogs', JSON.stringify(local));
       }
-      container.innerHTML = data.map(item => `
-        <div class="flex justify-between items-center bg-brand-dark p-2 border border-brand-border rounded">
-          <div>
-            <span class="font-bold text-white block text-xs">${item.exercise_name} (Set ${item.set_number})</span>
-            <span class="text-xs text-brand-red">${item.weight_kg}kg x ${item.reps_done} reps</span>
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="font-mono text-xs text-gray-400">⏱ ${formatMS(item.duration_seconds || 0)}</span>
-            <button onclick="deleteWorkoutLog('${item.id}')" class="text-xs text-red-500 font-bold p-1">✕ Delete</button>
-          </div>
-        </div>
-      `).join('');
+      fetchWeightLogs();
     }
 
-    async function deleteWorkoutLog(id) {
-      if (supabaseClient) await supabaseClient.from('workout_logs').delete().eq('id', id);
+    function toggleWeeklySummary() {
+      const content = document.getElementById('weeklySummaryContent');
+      const icon = document.getElementById('summaryToggleIcon');
+      content.classList.toggle('hidden');
+      icon.innerText = content.classList.contains('hidden') ? '▼' : '▲';
+    }
+
+    function renderSundayWeeklySummary() {
+      if (rawWeightData.length === 0) {
+        document.getElementById('weeklySummaryContent').innerHTML = `<p class="text-gray-500 italic">No weight entries to calculate weekly averages.</p>`;
+        return;
+      }
+
+      // Group entries by Sunday-ending week bounds
+      const weeksMap = {};
+      
+      rawWeightData.forEach(entry => {
+        const d = new Date(entry.log_date);
+        const dayOfWeek = d.getDay(); // 0 is Sunday
+        const distanceToSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+        
+        const sundayDate = new Date(d);
+        sundayDate.setDate(d.getDate() + distanceToSunday);
+        const weekKey = sundayDate.toISOString().split('T')[0];
+
+        if (!weeksMap[weekKey]) weeksMap[weekKey] = [];
+        weeksMap[weekKey].push(entry.weight_kg);
+      });
+
+      const sortedWeeks = Object.keys(weeksMap).sort((a, b) => new Date(b) - new Date(a));
+      
+      let html = '';
+      sortedWeeks.forEach((weekEnding, idx) => {
+        const weights = weeksMap[weekEnding];
+        const avg = (weights.reduce((a, b) => a + b, 0) / weights.length).toFixed(1);
+        
+        let deltaHtml = '<span class="text-gray-400">Baseline</span>';
+        if (idx < sortedWeeks.length - 1) {
+          const prevWeekEnding = sortedWeeks[idx + 1];
+          const prevWeights = weeksMap[prevWeekEnding];
+          const prevAvg = (prevWeights.reduce((a, b) => a + b, 0) / prevWeights.length).toFixed(1);
+          const diff = (avg - prevAvg).toFixed(1);
+
+          if (diff < 0) {
+            deltaHtml = `<span class="text-emerald-400 font-bold">🔻 ${Math.abs(diff)} kg loss</span>`;
+          } else if (diff > 0) {
+            deltaHtml = `<span class="text-brand-red font-bold">🔺 +${diff} kg gain</span>`;
+          } else {
+            deltaHtml = `<span class="text-gray-300 font-bold">➡️ No change</span>`;
+          }
+        }
+
+        html += `
+          <div class="flex justify-between items-center bg-brand-card p-2 rounded border border-brand-border">
+            <div>
+              <span class="font-bold text-white block">Week Ending Sun, ${weekEnding}</span>
+              <span class="text-[10px] text-gray-400">${weights.length} entries recorded</span>
+            </div>
+            <div class="text-right">
+              <span class="font-bold text-amber-400 block">${avg} kg avg</span>
+              ${deltaHtml}
+            </div>
+          </div>
+        `;
+      });
+
+      document.getElementById('weeklySummaryContent').innerHTML = html;
+    }
+
+    // --- WORKOUT HISTORY & GROUPED CARDS ---
+    async function fetchWorkoutLogs() {
+      const container = document.getElementById('exerciseGroupedHistory');
+      let data = [];
+
+      if (supabaseClient) {
+        const routineName = routines[currentRoutineKey].title;
+        const res = await supabaseClient.from('workout_logs').select('*').eq('workout_day', routineName).order('created_at', { ascending: false }).limit(25);
+        if (!res.error) data = res.data || [];
+      } else {
+        data = JSON.parse(localStorage.getItem('myWorkoutLogs')) || [];
+      }
+
+      if (!data || data.length === 0) {
+        container.innerHTML = `<p class="text-gray-500 italic text-xs">No exercise logs saved yet for this routine.</p>`;
+        return;
+      }
+
+      // Group logs by Exercise Name
+      const grouped = {};
+      data.forEach(item => {
+        if (!grouped[item.exercise_name]) grouped[item.exercise_name] = [];
+        grouped[item.exercise_name].push(item);
+      });
+
+      container.innerHTML = Object.keys(grouped).map(exName => {
+        const setsList = grouped[exName];
+        return `
+          <div class="bg-brand-dark p-2.5 rounded-lg border border-brand-border space-y-1">
+            <div class="flex justify-between items-center border-b border-brand-border/60 pb-1">
+              <span class="font-bold text-white text-xs">${exName}</span>
+              <span class="text-[10px] text-brand-red font-semibold">${setsList.length} set(s) logged</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+              ${setsList.map(s => `
+                <div class="flex justify-between items-center bg-brand-card p-1.5 rounded text-[11px]">
+                  <span>Set ${s.set_number}: <b class="text-brand-red">${s.weight_kg}kg</b> x <b>${s.reps_done}</b></span>
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono text-gray-400 text-[10px]">⏱ ${formatMS(s.duration_seconds || 0)}</span>
+                    <button onclick="deleteWorkoutLog('${s.id || s.created_at}')" class="text-red-500 font-bold hover:text-red-400">✕</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function deleteWorkoutLog(idOrTime) {
+      if (!confirm("Delete this set entry?")) return;
+      if (supabaseClient) {
+        await supabaseClient.from('workout_logs').delete().or(`id.eq.${idOrTime},created_at.eq.${idOrTime}`);
+      } else {
+        let local = JSON.parse(localStorage.getItem('myWorkoutLogs')) || [];
+        local = local.filter(l => l.id !== idOrTime && l.created_at !== idOrTime);
+        localStorage.setItem('myWorkoutLogs', JSON.stringify(local));
+      }
       fetchWorkoutLogs();
+      fetchLastExercisePerformance();
     }
 
     async function fetchLastExercisePerformance() {
-      if (!supabaseClient) return;
       const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
       if (!currentEx) return;
-      const { data } = await supabaseClient.from('workout_logs').select('weight_kg, reps_done').eq('exercise_name', currentEx.name).order('created_at', { ascending: false }).limit(1);
-      document.getElementById('lastPerfLog').innerText = (data && data.length) ? `${data[0].weight_kg}kg x ${data[0].reps_done}` : "No history";
+
+      if (supabaseClient) {
+        const { data } = await supabaseClient.from('workout_logs').select('weight_kg, reps_done').eq('exercise_name', currentEx.name).order('created_at', { ascending: false }).limit(1);
+        document.getElementById('lastPerfLog').innerText = (data && data.length) ? `${data[0].weight_kg}kg x ${data[0].reps_done}` : "No history";
+      } else {
+        const local = JSON.parse(localStorage.getItem('myWorkoutLogs')) || [];
+        const match = local.find(l => l.exercise_name === currentEx.name);
+        document.getElementById('lastPerfLog').innerText = match ? `${match.weight_kg}kg x ${match.reps_done}` : "No history";
+      }
     }
 
     function openHistoryModal() {
@@ -951,18 +1200,20 @@
 
     async function fetchFullWorkoutHistory() {
       const container = document.getElementById('historyLogsContainer');
-      if (!supabaseClient) {
-        container.innerHTML = `<p class="text-gray-500 italic">Supabase connection unavailable.</p>`;
-        return;
+      const filter = document.getElementById('historyRoutineFilter').value;
+      let data = [];
+
+      if (supabaseClient) {
+        let query = supabaseClient.from('workout_logs').select('*').order('created_at', { ascending: false });
+        if (filter !== 'ALL') query = query.eq('workout_day', filter);
+        const res = await query;
+        data = res.data || [];
+      } else {
+        data = JSON.parse(localStorage.getItem('myWorkoutLogs')) || [];
+        if (filter !== 'ALL') data = data.filter(d => d.workout_day === filter);
       }
 
-      const filter = document.getElementById('historyRoutineFilter').value;
-      let query = supabaseClient.from('workout_logs').select('*').order('created_at', { ascending: false });
-
-      if (filter !== 'ALL') query = query.eq('workout_day', filter);
-
-      const { data, error } = await query;
-      if (error || !data || data.length === 0) {
+      if (!data || data.length === 0) {
         container.innerHTML = `<p class="text-gray-500 italic">No recorded workout sessions found.</p>`;
         return;
       }
@@ -981,11 +1232,14 @@
 
     function changeRoutine(key) {
       currentRoutineKey = key; currentExerciseIdx = 0; currentSetIdx = 1;
+      lastEnteredWeight = null;
+      renderExerciseTabs();
       renderExerciseCard(); fetchWorkoutLogs();
     }
 
     function toggleSession() {
       if (!isSessionActive) {
+        requestNotificationPermission();
         isSessionActive = true;
         document.getElementById('sessionBtn').innerText = '⏹ STOP SESSION';
         document.getElementById('saveSetBtn').disabled = false;
@@ -1001,6 +1255,7 @@
         }, 1000);
         
         startSetTimer();
+        saveActiveSessionState();
       } else {
         isSessionActive = false;
         clearInterval(overallTimerInterval);
@@ -1012,6 +1267,7 @@
 
         document.getElementById('sessionBtn').innerText = '▶ START SESSION';
         document.getElementById('saveSetBtn').disabled = true;
+        saveActiveSessionState();
       }
     }
 
@@ -1021,46 +1277,47 @@
       const reps = parseInt(document.getElementById('inputReps').value);
       const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
 
+      lastEnteredWeight = kg;
+
+      const logEntry = {
+        workout_day: routines[currentRoutineKey].title,
+        exercise_name: currentEx.name,
+        set_number: currentSetIdx,
+        weight_kg: kg,
+        reps_done: reps,
+        duration_seconds: setSeconds,
+        created_at: new Date().toISOString()
+      };
+
       if (supabaseClient) {
-        await supabaseClient.from('workout_logs').insert([{
-          workout_day: routines[currentRoutineKey].title,
-          exercise_name: currentEx.name,
-          set_number: currentSetIdx,
-          weight_kg: kg,
-          reps_done: reps,
-          duration_seconds: setSeconds
-        }]);
-        await fetchWorkoutLogs();
+        await supabaseClient.from('workout_logs').insert([logEntry]);
+      } else {
+        let local = JSON.parse(localStorage.getItem('myWorkoutLogs')) || [];
+        local.unshift(logEntry);
+        localStorage.setItem('myWorkoutLogs', JSON.stringify(local));
       }
 
+      await fetchWorkoutLogs();
       document.getElementById('logSetForm').reset();
 
       if (currentSetIdx < currentEx.sets) {
         currentSetIdx++;
         renderExerciseCard();
+        saveActiveSessionState();
         startRestTimer();
       } else {
         currentSetIdx = 1;
         if (currentExerciseIdx < routines[currentRoutineKey].exercises.length - 1) {
           currentExerciseIdx++;
+          renderExerciseTabs();
           renderExerciseCard();
-          startRestTimer();
+          saveActiveSessionState();
+          pauseTimerForExerciseChange();
         } else {
           alert("🎉 Complete workout session finished!");
           toggleSession();
         }
       }
-    }
-
-    async function handleWeightLog(e) {
-      e.preventDefault();
-      const date = document.getElementById('weightDate').value;
-      const weight = parseFloat(document.getElementById('weightValue').value);
-      if (supabaseClient) {
-        await supabaseClient.from('weight_logs').upsert([{ log_date: date, weight_kg: weight }]);
-        fetchWeightLogs();
-      }
-      document.getElementById('weightValue').value = '';
     }
 
     function renderExerciseCard() {
@@ -1072,6 +1329,11 @@
       document.getElementById('targetSets').innerText = ex.sets;
       document.getElementById('currentSetNum').innerText = currentSetIdx;
       document.getElementById('targetReps').innerText = ex.reps;
+
+      if (lastEnteredWeight !== null) {
+        document.getElementById('inputKg').value = lastEnteredWeight;
+      }
+
       fetchLastExercisePerformance();
     }
 
