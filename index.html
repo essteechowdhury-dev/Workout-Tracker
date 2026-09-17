@@ -170,17 +170,31 @@
         </div>
       </div>
 
-      <!-- MEAL PLAN TRACKER -->
+      <!-- MEAL PLAN TRACKER WITH DUAL DROPDOWNS -->
       <div class="bg-brand-card border border-brand-border rounded-xl p-3 sm:p-5 shadow-lg">
-        <div class="flex justify-between items-center mb-3">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
           <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2"><span>🥗</span> MEAL PLAN</h2>
-          <div class="flex items-center gap-2">
-            <select id="mealTypeSelect" onchange="renderMeals()" class="bg-brand-dark text-[11px] sm:text-xs text-brand-red font-bold rounded border border-brand-border p-1.5 outline-none">
+          
+          <div class="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+            <!-- DAY TYPE DROPDOWN -->
+            <select id="mealTypeSelect" onchange="renderMeals()" class="bg-brand-dark text-[11px] text-brand-red font-bold rounded border border-brand-border p-1.5 outline-none flex-1 sm:flex-initial">
               <option value="training">Training Day</option>
               <option value="nontraining">Non-Training Day</option>
             </select>
-            <button onclick="openMealModal()" class="text-[11px] sm:text-xs bg-brand-red hover:bg-brand-darkRed text-white px-2 py-1.5 rounded font-semibold shrink-0">
-              ➕ Add Food
+
+            <!-- MEAL CATEGORY FILTER DROPDOWN -->
+            <select id="mealCategoryFilter" onchange="renderMeals()" class="bg-brand-dark text-[11px] text-amber-400 font-bold rounded border border-brand-border p-1.5 outline-none flex-1 sm:flex-initial">
+              <option value="ALL">All Meals</option>
+              <option value="Breakfast">Breakfast</option>
+              <option value="Pre-Workout">Pre-Workout</option>
+              <option value="Post-Workout">Post-Workout</option>
+              <option value="Lunch">Lunch</option>
+              <option value="Dinner">Dinner</option>
+              <option value="Snack">Snack</option>
+            </select>
+
+            <button onclick="openMealModal()" class="text-[11px] bg-brand-red hover:bg-brand-darkRed text-white px-2 py-1.5 rounded font-semibold shrink-0">
+              ➕ Add
             </button>
           </div>
         </div>
@@ -192,8 +206,8 @@
           <div><span class="text-gray-400 block">Fats</span><span id="totalFats" class="font-bold text-white">0g</span></div>
         </div>
 
-        <!-- FULL UNRESTRICTED MOBILE MEAL LIST CONTAINER -->
-        <div id="mealList" class="space-y-3 pt-1"></div>
+        <!-- FILTERED MEALS CONTAINER -->
+        <div id="mealList" class="space-y-3"></div>
       </div>
     </section>
 
@@ -841,45 +855,56 @@
     }
 
     function renderMeals() {
-      const type = document.getElementById('mealTypeSelect').value;
-      const mealList = meals[type] || [];
+      const dayType = document.getElementById('mealTypeSelect').value;
+      const categoryFilter = document.getElementById('mealCategoryFilter').value;
+      const allDayMeals = meals[dayType] || [];
 
+      // Always calculate daily overall summary across ALL meals in that day type
       let tKcal = 0, tC = 0, tP = 0, tF = 0;
-      mealList.forEach(m => { tKcal += m.kcal; tC += m.carbs; tP += m.protein; tF += m.fats; });
+      allDayMeals.forEach(m => { tKcal += m.kcal; tC += m.carbs; tP += m.protein; tF += m.fats; });
 
       document.getElementById('totalKcal').innerText = `${tKcal} kcal`;
       document.getElementById('totalCarbs').innerText = `${tC}g`;
       document.getElementById('totalProtein').innerText = `${tP}g`;
       document.getElementById('totalFats').innerText = `${tF}g`;
 
-      if (mealList.length === 0) {
-        document.getElementById('mealList').innerHTML = `<p class="text-gray-500 italic text-xs">No meals added for this day type yet.</p>`;
+      // Filter displayed meal cards based on dropdown
+      const displayedMeals = (categoryFilter === "ALL") 
+        ? allDayMeals 
+        : allDayMeals.filter(m => m.category === categoryFilter);
+
+      if (displayedMeals.length === 0) {
+        document.getElementById('mealList').innerHTML = `<p class="text-gray-500 italic text-xs p-2 bg-brand-dark rounded border border-brand-border">No ${categoryFilter === "ALL" ? "" : categoryFilter} meals logged for this day type.</p>`;
         return;
       }
 
-      document.getElementById('mealList').innerHTML = mealList.map((meal, idx) => `
-        <div class="bg-brand-dark p-2.5 sm:p-3 border border-brand-border rounded-lg flex flex-col gap-1.5">
-          <div class="flex justify-between items-center border-b border-brand-border pb-1">
-            <div>
-              <span class="text-xs font-bold text-brand-red block">${meal.category}</span>
-              <span class="text-[10px] text-gray-400 font-mono">C:${meal.carbs}g | P:${meal.protein}g | F:${meal.fats}g</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-white">${meal.kcal} kcal</span>
-              <button onclick="editMeal('${type}', ${idx})" class="text-xs text-amber-400 hover:text-amber-300 font-bold px-1">✏️ Edit</button>
-              <button onclick="deleteMeal('${type}', ${idx})" class="text-xs text-red-500 font-bold p-0.5">✕ Delete</button>
-            </div>
-          </div>
-          <div class="space-y-1">
-            ${meal.items.map(item => `
-              <div class="flex justify-between items-center text-xs bg-brand-card p-1.5 rounded">
-                <span class="text-gray-200 truncate max-w-[150px] sm:max-w-none">${item.name} (${item.grams}g)</span>
-                <span class="text-[10px] text-gray-400 font-mono shrink-0 ml-1">${item.kcal} kcal | C:${item.carbs}g P:${item.protein}g F:${item.fats}g</span>
+      document.getElementById('mealList').innerHTML = displayedMeals.map((meal, idx) => {
+        // Map back to original index in array
+        const realIdx = allDayMeals.indexOf(meal);
+        return `
+          <div class="bg-brand-dark p-2.5 sm:p-3 border border-brand-border rounded-lg flex flex-col gap-1.5">
+            <div class="flex justify-between items-center border-b border-brand-border pb-1">
+              <div>
+                <span class="text-xs font-bold text-brand-red block">${meal.category}</span>
+                <span class="text-[10px] text-gray-400 font-mono">C:${meal.carbs}g | P:${meal.protein}g | F:${meal.fats}g</span>
               </div>
-            `).join('')}
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-white">${meal.kcal} kcal</span>
+                <button onclick="editMeal('${dayType}', ${realIdx})" class="text-xs text-amber-400 hover:text-amber-300 font-bold px-1">✏️ Edit</button>
+                <button onclick="deleteMeal('${dayType}', ${realIdx})" class="text-xs text-red-500 font-bold p-0.5">✕ Delete</button>
+              </div>
+            </div>
+            <div class="space-y-1">
+              ${meal.items.map(item => `
+                <div class="flex justify-between items-center text-xs bg-brand-card p-1.5 rounded">
+                  <span class="text-gray-200 truncate max-w-[150px] sm:max-w-none">${item.name} (${item.grams}g)</span>
+                  <span class="text-[10px] text-gray-400 font-mono shrink-0 ml-1">${item.kcal} kcal | C:${item.carbs}g P:${item.protein}g F:${item.fats}g</span>
+                </div>
+              `).join('')}
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function openMealModal() {
