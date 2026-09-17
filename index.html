@@ -192,7 +192,8 @@
           <div><span class="text-gray-400 block">Fats</span><span id="totalFats" class="font-bold text-white">0g</span></div>
         </div>
 
-        <div id="mealList" class="space-y-3"></div>
+        <!-- SCROLLABLE MEALS WRAPPER FOR MOBILE -->
+        <div id="mealList" class="space-y-3 max-h-[60vh] sm:max-h-96 overflow-y-auto pr-1"></div>
       </div>
     </section>
 
@@ -1205,14 +1206,28 @@
       const currentEx = routines[currentRoutineKey].exercises[currentExerciseIdx];
       if (!currentEx) return;
 
+      let logs = [];
       if (supabaseClient) {
-        const { data } = await supabaseClient.from('workout_logs').select('weight_kg, reps_done').eq('exercise_name', currentEx.name).order('created_at', { ascending: false }).limit(1);
-        document.getElementById('lastPerfLog').innerText = (data && data.length) ? `${data[0].weight_kg}kg x ${data[0].reps_done}` : "No history";
+        const { data } = await supabaseClient.from('workout_logs').select('*').eq('exercise_name', currentEx.name).order('created_at', { ascending: false }).limit(10);
+        logs = data || [];
       } else {
         const local = JSON.parse(localStorage.getItem('myWorkoutLogs')) || [];
-        const match = local.find(l => l.exercise_name === currentEx.name);
-        document.getElementById('lastPerfLog').innerText = match ? `${match.weight_kg}kg x ${match.reps_done}` : "No history";
+        logs = local.filter(l => l.exercise_name === currentEx.name);
       }
+
+      if (logs.length === 0) {
+        document.getElementById('lastPerfLog').innerText = "No history";
+        return;
+      }
+
+      // Group logs by session (created_at date) to find the most recent workout session sets
+      const latestDateStr = new Date(logs[0].created_at).toDateString();
+      const lastSessionSets = logs.filter(l => new Date(l.created_at).toDateString() === latestDateStr);
+
+      // Find lowest reps in that session and weight used
+      const lowestRepsSet = lastSessionSets.reduce((min, curr) => (curr.reps_done < min.reps_done ? curr : min), lastSessionSets[0]);
+
+      document.getElementById('lastPerfLog').innerText = `${lowestRepsSet.weight_kg}kg x ${lowestRepsSet.reps_done} (min)`;
     }
 
     function openHistoryModal() {
